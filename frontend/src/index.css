@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-white text-darkText font-sans antialiased overflow-x-hidden;
+  }
+}
+
+@layer components {
+  /* Glassmorphism card for light themes */
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-lg border-2 border-gold/30 rounded-2xl p-6 shadow-xl transition-all duration-300;
+  }
+  
+  .glass-card:hover {
+    @apply border-gold/60 shadow-2xl;
+  }
+  
+  .btn-primary {
+    @apply bg-saffron hover:bg-[#e85a28] text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:-translate-y-1 shadow-[0_4px_14px_0_rgba(255,107,53,0.39)];
+  }
+
+  .btn-secondary {
+    @apply bg-white hover:bg-gray-50 text-saffron border-2 border-saffron font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:-translate-y-1 shadow-md;
+  }
+
+  .input-field {
+    @apply w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-darkText focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-colors;
+  }
+}
