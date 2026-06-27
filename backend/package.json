@@ -1,7 +1,7 @@
 {
-  "name": "divya-yatra-backend",
+  "name": "teerth-sethu-backend",
   "version": "1.0.0",
-  "description": "Divya Yatra Backend API",
+  "description": "TeerthSethu Backend API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
