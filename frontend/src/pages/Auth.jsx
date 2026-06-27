@@ -184,16 +184,22 @@ export default function Auth() {
                     />
                   </div>
                 ) : (
-                  <div className="relative">
-                    <Phone className="absolute left-4 top-3.5 h-5 w-5 text-slate-600 dark:text-slate-400" />
+                  <div className="relative flex items-center">
+                    <Phone className="absolute left-4 h-5 w-5 text-slate-600 dark:text-slate-400 pointer-events-none" />
+                    <span className="absolute left-11 text-slate-700 dark:text-slate-300 font-medium border-r border-slate-300 dark:border-white/20 pr-2 pointer-events-none">+91</span>
                     <input 
                       type="tel" 
                       name="phone"
-                      placeholder="Phone Number" 
+                      placeholder="10-digit number" 
+                      pattern="[0-9]{10}"
+                      maxLength="10"
                       required 
-                      className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-12 pr-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-all"
-                      defaultValue="+91 9876543210"
-                      onChange={handleInputChange}
+                      className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-[5.5rem] pr-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-all"
+                      defaultValue="9876543210"
+                      onChange={(e) => {
+                        e.target.value = e.target.value.replace(/\D/g, '');
+                        handleInputChange(e);
+                      }}
                     />
                   </div>
                 )}
@@ -243,16 +249,22 @@ export default function Auth() {
                   />
                 </div>
 
-                <div className="relative">
-                  <Phone className="absolute left-4 top-3.5 h-5 w-5 text-slate-600 dark:text-slate-400" />
+                <div className="relative flex items-center">
+                  <Phone className="absolute left-4 h-5 w-5 text-slate-600 dark:text-slate-400 pointer-events-none" />
+                  <span className="absolute left-11 text-slate-700 dark:text-slate-300 font-medium border-r border-slate-300 dark:border-white/20 pr-2 pointer-events-none">+91</span>
                   <input 
                     type="tel" 
                     name="phone" 
-                    placeholder="Phone Number" 
+                    placeholder="10-digit number" 
+                    pattern="[0-9]{10}"
+                    maxLength="10"
                     required 
-                    className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-12 pr-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-all"
+                    className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-[5.5rem] pr-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-all"
                     value={formData.phone}
-                    onChange={handleInputChange}
+                    onChange={(e) => {
+                      e.target.value = e.target.value.replace(/\D/g, '');
+                      handleInputChange(e);
+                    }}
                   />
                 </div>
 
