@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Phone, Mail, Lock, Shield, User, MapPin, Key, UserCheck, X } from 'lucide-react';
+import { Sparkles, Phone, Mail, Lock, Shield, User, MapPin, Key, UserCheck, X, Eye, EyeOff } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function Auth() {
@@ -13,6 +13,47 @@ export default function Auth() {
   const [showForgot, setShowForgot] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotSuccess, setForgotSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpValues, setOtpValues] = useState(['', '', '', '', '', '']);
+  const [otpTimer, setOtpTimer] = useState(60);
+
+  // Slideshow states
+  const temples = [
+    "/temple4.jpg",
+    "/temple5.jpg",
+    "/temple6.jpg",
+    "/temple7.jpg"
+  ];
+  const adminTemples = [
+    "/admin1.jpg",
+    "/admin2.jpg",
+    "/admin3.jpg",
+    "/admin4.jpg"
+  ];
+
+  const [currentTempleIndex, setCurrentTempleIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTempleIndex((prev) => (prev + 1) % temples.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    let interval = null;
+    if (otpSent && otpTimer > 0) {
+      interval = setInterval(() => {
+        setOtpTimer((prev) => prev - 1);
+      }, 1000);
+    } else if (otpTimer === 0) {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [otpSent, otpTimer]);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -37,9 +78,19 @@ export default function Auth() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setErrorMsg('');
     
+    let submitEmail = formData.email || (role === 'admin' ? 'admin@temple' : 'pilgrim@teerthsethu.in');
+    
+    if (isLogin && loginMethod === 'email' && role === 'admin') {
+      if (!submitEmail.endsWith('@temple')) {
+        setErrorMsg('Administrator email must end with @temple');
+        return;
+      }
+    }
+
     const payload = isLogin 
-      ? { email: formData.email || 'user@teerthsethu.in', password: formData.password || 'password', role }
+      ? { email: submitEmail, password: formData.password || 'password', role }
       : { ...formData, role };
 
     fetch('/api/auth/login', {
@@ -82,7 +133,7 @@ export default function Auth() {
       <Link
         to="/"
         state={{ skipSplash: true }}
-        className="absolute top-6 left-6 p-2.5 rounded-full border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 backdrop-blur-md hover:bg-white/80 dark:hover:bg-white/10 transition-all z-50 text-slate-600 dark:text-slate-300 shadow-sm hover:scale-105"
+        className="absolute top-6 left-6 p-2.5 rounded-full border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/40 backdrop-blur-md hover:bg-white/80 dark:hover:bg-white/10 transition-all z-50 text-slate-600 dark:text-slate-300 shadow-sm hover:scale-105"
         aria-label="Back to home"
       >
         <X className="h-5 w-5" />
@@ -91,7 +142,7 @@ export default function Auth() {
       {/* Theme Toggle Button */}
       <button
         onClick={toggleTheme}
-        className="absolute top-6 right-6 p-2.5 rounded-full border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 backdrop-blur-md hover:bg-white/80 dark:hover:bg-white/10 transition-all z-50 text-indigo-600 dark:text-yellow-400 shadow-sm"
+        className="absolute top-6 right-6 p-2.5 rounded-full border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/40 backdrop-blur-md hover:bg-white/80 dark:hover:bg-white/10 transition-all z-50 text-indigo-600 dark:text-yellow-400 shadow-sm"
         aria-label="Toggle theme"
       >
         {isDarkMode ? (
@@ -113,45 +164,154 @@ export default function Auth() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-4xl bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] overflow-hidden flex flex-col md:flex-row relative z-10"
+        className="w-full max-w-4xl bg-white/50 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] overflow-hidden flex flex-col md:flex-row relative z-10"
       >
         
-        {/* Left Side - Brand & Info */}
-        <div className="w-full md:w-5/12 bg-indigo-50 dark:bg-slate-900/50 p-8 flex flex-col border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5">
-          <div className="text-center mb-6">
+        {/* Left Side - Brand & Info with Slideshow */}
+        <div className="w-full md:w-5/12 relative flex flex-col border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 overflow-hidden min-h-[300px]">
+          <AnimatePresence>
+            <motion.img
+              key={`${role}-${currentTempleIndex}`}
+              src={role === 'admin' ? adminTemples[currentTempleIndex] : temples[currentTempleIndex]}
+              initial={{ opacity: 0, scale: 1.05 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1 }}
+              className="absolute inset-0 w-full h-full object-cover"
+              alt="Temple Background"
+            />
+          </AnimatePresence>
+          {/* Overlay to ensure text/logo visibility against image */}
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
+
+          <div className="relative z-10 flex flex-col h-full items-center justify-center p-8 text-center">
             <div className="flex justify-center mb-8">
               <img 
                 src={finalLogo} 
                 alt="TeerthSetu Logo" 
-                className="h-28 md:h-36 w-auto object-contain"
-                style={!isDarkMode ? { filter: 'brightness(0.85) contrast(1.15) saturate(1.1)', mixBlendMode: 'multiply' } : {}}
+                className="h-28 md:h-36 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] brightness-125"
+                style={{ filter: 'brightness(1.2)' }}
               />
             </div>
-            <p className="text-slate-700 dark:text-slate-300 text-sm">AI-Powered Smart Pilgrimage Management</p>
+            <p className="text-white font-medium text-sm drop-shadow-md">AI-Powered Smart Pilgrimage Management</p>
           </div>
         </div>
         
         {/* Right Side - Forms */}
-        <div className="w-full md:w-7/12 p-8 flex flex-col justify-center">
+        <div className="w-full md:w-7/12 p-8 flex flex-col justify-center relative bg-white/40 dark:bg-transparent overflow-hidden">
+          {role === 'devotee' && (
+            <div 
+              className="absolute inset-0 z-0 opacity-50 dark:opacity-100 pointer-events-none blur-sm"
+              style={{
+                backgroundImage: "url('/scripture.jpg')",
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundBlendMode: isDarkMode ? 'multiply' : 'normal',
+                backgroundColor: isDarkMode ? '#4a3f35' : 'transparent'
+              }}
+            />
+          )}
 
-        {/* Form Title */}
-        <h3 className="text-2xl font-bold text-center mb-6">
+          <div className="relative z-10 w-full flex flex-col h-full">
+            {otpSent ? (
+              <motion.div
+                key="otp-verification-view"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex flex-col h-full justify-center w-full max-w-md mx-auto my-auto py-12"
+              >
+                <div className="flex flex-col gap-6 mb-12">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white font-sans tracking-wide drop-shadow-md">Enter OTP</h3>
+                  <div className="flex justify-between gap-3">
+                    {otpValues.map((v, i) => (
+                      <input 
+                        key={i}
+                        id={`otp-${i}`}
+                        type="text" 
+                        maxLength="1"
+                        value={v}
+                        className={`w-12 h-14 text-center bg-transparent border-b-2 text-2xl font-black text-black dark:text-white focus:outline-none transition-colors drop-shadow-sm ${v ? 'border-saffron' : 'border-slate-700 dark:border-slate-400'}`}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, '');
+                          const newOtp = [...otpValues];
+                          newOtp[i] = val;
+                          setOtpValues(newOtp);
+                          if (val && i < 5) {
+                            document.getElementById(`otp-${i + 1}`)?.focus();
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Backspace' && !otpValues[i] && i > 0) {
+                            document.getElementById(`otp-${i - 1}`)?.focus();
+                          }
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="flex flex-col gap-8">
+                  {otpTimer > 0 ? (
+                    <p className="text-lg font-bold text-slate-900 dark:text-slate-100 tracking-wide font-sans drop-shadow-md">
+                      Didn't receive the OTP? Retry in 00:{otpTimer.toString().padStart(2, '0')}
+                    </p>
+                  ) : (
+                    <p className="text-lg font-bold text-slate-900 dark:text-slate-100 tracking-wide font-sans drop-shadow-md">
+                      Didn't receive the OTP?{" "}
+                      <button 
+                        type="button" 
+                        onClick={() => setOtpTimer(60)} 
+                        className="text-saffron hover:underline ml-1"
+                      >
+                        Resend Now
+                      </button>
+                    </p>
+                  )}
+                  <button 
+                    type="button"
+                    className="w-full py-4 rounded-xl bg-saffron text-white font-bold text-xl tracking-widest hover:bg-[#e85a28] transition-colors shadow-lg shadow-saffron/30"
+                    onClick={() => {
+                      alert("OTP Verified!");
+                      setOtpSent(false);
+                    }}
+                  >
+                    ENTER OTP
+                  </button>
+                  <button 
+                    type="button"
+                    className="text-sm font-bold text-slate-800 dark:text-slate-300 hover:text-black dark:hover:text-white mx-auto drop-shadow-md"
+                    onClick={() => setOtpSent(false)}
+                  >
+                    Back to Login
+                  </button>
+                </div>
+              </motion.div>
+            ) : (
+            <>
+            {/* Form Title */}
+            <h3 className="text-3xl font-serif font-black text-red-900 dark:text-white text-center mb-6">
           {isLogin ? `${role === 'admin' ? 'Administrator' : 'Devotee'} Login` : 'Create Devotee Account'}
         </h3>
+
+        {errorMsg && (
+          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/50 rounded-xl text-sm text-center font-medium">
+            {errorMsg}
+          </div>
+        )}
 
         {/* Login Method Toggle (only if login mode) */}
         {isLogin && (
           <div className="flex justify-center gap-6 mb-6 text-sm">
             <button 
               type="button"
-              className={`pb-1 border-b-2 font-medium transition-colors ${loginMethod === 'email' ? 'border-saffron text-saffron' : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white'}`}
+              className={`pb-1 border-b-2 font-serif font-bold text-base transition-colors ${loginMethod === 'email' ? 'border-red-900 text-red-900 dark:border-saffron dark:text-saffron' : 'border-transparent text-red-900 dark:text-white hover:text-red-800 dark:hover:text-slate-200'}`}
               onClick={() => setLoginMethod('email')}
             >
               Email Login
             </button>
             <button 
               type="button"
-              className={`pb-1 border-b-2 font-medium transition-colors ${loginMethod === 'phone' ? 'border-saffron text-saffron' : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white'}`}
+              className={`pb-1 border-b-2 font-serif font-bold text-base transition-colors ${loginMethod === 'phone' ? 'border-red-900 text-red-900 dark:border-saffron dark:text-saffron' : 'border-transparent text-red-900 dark:text-white hover:text-red-800 dark:hover:text-slate-200'}`}
               onClick={() => setLoginMethod('phone')}
             >
               Phone Login
@@ -178,10 +338,15 @@ export default function Auth() {
                       name="email"
                       placeholder="Email Address" 
                       required 
-                      className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-12 pr-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-all"
-                      defaultValue={role === 'admin' ? 'admin@teerthsethu.in' : 'pilgrim@teerthsethu.in'}
+                      className="w-full bg-slate-100 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl pl-12 pr-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-all"
+                      defaultValue={role === 'admin' ? 'admin@temple' : 'pilgrim@teerthsethu.in'}
                       onChange={handleInputChange}
                     />
+                    {role === 'admin' && (
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 pl-1 font-medium">
+                        Note: Email must end with @temple
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <div className="relative flex items-center">
@@ -194,7 +359,7 @@ export default function Auth() {
                       pattern="[0-9]{10}"
                       maxLength="10"
                       required 
-                      className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-[5.5rem] pr-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-all"
+                      className="w-full bg-slate-100 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl pl-[5.5rem] pr-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-all"
                       defaultValue="9876543210"
                       onChange={(e) => {
                         e.target.value = e.target.value.replace(/\D/g, '');
@@ -207,21 +372,40 @@ export default function Auth() {
                 <div className="relative">
                   <Lock className="absolute left-4 top-3.5 h-5 w-5 text-slate-600 dark:text-slate-400" />
                   <input 
-                    type="password" 
+                    type={showPassword ? "text" : "password"} 
                     name="password"
                     placeholder="Password" 
-                    required 
-                    className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-12 pr-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-all"
+                    required={!otpSent}
+                    className="w-full bg-slate-100 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl pl-12 pr-12 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-all"
                     defaultValue="password"
                     onChange={handleInputChange}
                   />
+                  <button 
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-3.5 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
+
+                {loginMethod === 'phone' && (
+                  <div className="flex justify-end mt-[-8px] mb-2">
+                    <button 
+                      type="button"
+                      onClick={() => { setOtpSent(true); setOtpTimer(60); }}
+                      className="text-sm font-bold text-red-900 dark:text-red-400 hover:underline"
+                    >
+                      Login with OTP instead
+                    </button>
+                  </div>
+                )}
 
                 <div className="text-right">
                   <button 
                     type="button" 
                     onClick={() => setShowForgot(true)}
-                    className="text-xs text-gold hover:underline transition-all"
+                    className="text-sm font-serif text-black dark:text-white font-bold hover:underline transition-all"
                   >
                     Forgot Password?
                   </button>
@@ -243,7 +427,7 @@ export default function Auth() {
                     name="name" 
                     placeholder="Full Name" 
                     required 
-                    className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-12 pr-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-all"
+                    className="w-full bg-slate-100 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl pl-12 pr-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-all"
                     value={formData.name}
                     onChange={handleInputChange}
                   />
@@ -259,7 +443,7 @@ export default function Auth() {
                     pattern="[0-9]{10}"
                     maxLength="10"
                     required 
-                    className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-[5.5rem] pr-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-all"
+                    className="w-full bg-slate-100 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl pl-[5.5rem] pr-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-all"
                     value={formData.phone}
                     onChange={(e) => {
                       e.target.value = e.target.value.replace(/\D/g, '');
@@ -275,7 +459,7 @@ export default function Auth() {
                     name="email" 
                     placeholder="Email Address" 
                     required 
-                    className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-12 pr-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-all"
+                    className="w-full bg-slate-100 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl pl-12 pr-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-all"
                     value={formData.email}
                     onChange={handleInputChange}
                   />
@@ -284,27 +468,41 @@ export default function Auth() {
                 <div className="relative">
                   <Lock className="absolute left-4 top-3.5 h-5 w-5 text-slate-600 dark:text-slate-400" />
                   <input 
-                    type="password" 
+                    type={showPassword ? "text" : "password"} 
                     name="password" 
                     placeholder="Password" 
                     required 
-                    className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-12 pr-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-all"
+                    className="w-full bg-slate-100 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl pl-12 pr-12 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-all"
                     value={formData.password}
                     onChange={handleInputChange}
                   />
+                  <button 
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-3.5 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
 
                 <div className="relative">
                   <Lock className="absolute left-4 top-3.5 h-5 w-5 text-slate-600 dark:text-slate-400" />
                   <input 
-                    type="password" 
+                    type={showConfirmPassword ? "text" : "password"} 
                     name="confirmPassword" 
                     placeholder="Confirm Password" 
                     required 
-                    className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-12 pr-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-all"
+                    className="w-full bg-slate-100 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl pl-12 pr-12 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition-all"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                   />
+                  <button 
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-4 top-3.5 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
 
 
@@ -322,15 +520,15 @@ export default function Auth() {
 
         {/* OR Divider */}
         <div className="flex items-center my-6">
-          <div className="flex-1 border-t border-slate-200 dark:border-white/10"></div>
-          <span className="px-4 text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">or</span>
-          <div className="flex-1 border-t border-slate-200 dark:border-white/10"></div>
+          <div className="flex-1 border-t border-slate-400 dark:border-white/20"></div>
+          <span className="px-4 text-sm font-serif font-black text-red-900 dark:text-white uppercase tracking-wider">or</span>
+          <div className="flex-1 border-t border-slate-400 dark:border-white/20"></div>
         </div>
         
         {/* Google Sign In Button */}
         <button 
           type="button"
-          className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 transition-all duration-300 shadow-sm font-semibold text-slate-700 dark:text-white"
+          className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white/90 dark:bg-black/40 hover:bg-white dark:hover:bg-white/10 transition-all duration-300 shadow-sm font-serif font-bold text-red-900 dark:text-white"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -342,16 +540,19 @@ export default function Auth() {
         </button>
 
         {role === 'devotee' && (
-          <p className="text-center text-slate-600 dark:text-slate-400 mt-8 text-sm">
+          <p className="text-center font-serif text-red-900 dark:text-white font-bold mt-8 text-base">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <span 
-              className="text-gold font-semibold cursor-pointer hover:underline" 
+              className="text-black dark:text-saffron font-black cursor-pointer hover:underline" 
               onClick={() => setIsLogin(!isLogin)}
             >
               {isLogin ? 'Create Account' : 'Sign In'}
             </span>
           </p>
         )}
+            </>
+            )}
+          </div>
         </div>
       </motion.div>
 
@@ -383,7 +584,7 @@ export default function Auth() {
                     type="text" 
                     placeholder="Email or Phone Number" 
                     required 
-                    className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron transition-all"
+                    className="w-full bg-slate-100 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-saffron transition-all"
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
                   />
@@ -391,7 +592,7 @@ export default function Auth() {
                     <button 
                       type="button" 
                       onClick={() => setShowForgot(false)}
-                      className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:bg-white/5 transition-all"
+                      className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:bg-black/40 transition-all"
                     >
                       Cancel
                     </button>
