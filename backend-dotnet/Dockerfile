@@ -1,9 +1,9 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["backend-dotnet/backend-dotnet.csproj", "backend-dotnet/"]
-RUN dotnet restore "backend-dotnet/backend-dotnet.csproj"
-COPY ["backend-dotnet/", "backend-dotnet/"]
-RUN dotnet publish "backend-dotnet/backend-dotnet.csproj" -c Release -o /app/publish
+COPY ["backend-dotnet.csproj", "./"]
+RUN dotnet restore "./backend-dotnet.csproj"
+COPY . .
+RUN dotnet publish "backend-dotnet.csproj" -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
