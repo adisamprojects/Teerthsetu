@@ -101,7 +101,7 @@ export default function Auth() {
         password: formData.password
       };
 
-      fetch('/api/devotee/login', {
+      fetch('https://teerthsetu-backend.onrender.com/api/devotee/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -144,7 +144,7 @@ export default function Auth() {
         confirmPassword: formData.confirmPassword
       };
 
-      fetch('/api/devotee/register', {
+      fetch('https://teerthsetu-backend.onrender.com/api/devotee/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -181,7 +181,7 @@ export default function Auth() {
       alert(`Please enter your ${loginMethod} first.`);
       return;
     }
-    fetch('/api/devotee/send-otp', {
+    fetch('https://teerthsetu-backend.onrender.com/api/devotee/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: identifier })
@@ -203,7 +203,7 @@ export default function Auth() {
       return;
     }
     
-    fetch('/api/devotee/verify-otp', {
+    fetch('https://teerthsetu-backend.onrender.com/api/devotee/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, otp })
@@ -223,7 +223,7 @@ export default function Auth() {
   };
 
   const handleResendOtp = () => {
-    fetch('/api/devotee/send-otp', {
+    fetch('https://teerthsetu-backend.onrender.com/api/devotee/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email })
@@ -235,7 +235,7 @@ export default function Auth() {
     onSuccess: (codeResponse) => {
       // The codeResponse contains an access_token. 
       // We'll pass it to our backend to verify and generate our own JWT.
-      fetch('/api/devotee/google-login', {
+      fetch('https://teerthsetu-backend.onrender.com/api/devotee/google-login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ idToken: codeResponse.access_token })

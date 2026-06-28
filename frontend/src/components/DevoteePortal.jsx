@@ -8,7 +8,7 @@ export default function DevoteePortal() {
   const [toast, setToast] = useState('');
 
   useEffect(() => {
-    fetch('/api/temples')
+    fetch('https://teerthsetu-backend.onrender.com/api/temples')
       .then(res => res.json())
       .then(data => {
         setTemples(data);
@@ -19,7 +19,7 @@ export default function DevoteePortal() {
 
   const handleBooking = (e) => {
     e.preventDefault();
-    fetch('/api/bookings', {
+    fetch('https://teerthsetu-backend.onrender.com/api/bookings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ templeId: selectedTemple, members: 2 })
