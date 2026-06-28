@@ -251,8 +251,13 @@ export default function Auth() {
       .then(({ status, data }) => {
         if (status === 200) {
           localStorage.setItem('token', data.token);
-          localStorage.setItem('user', JSON.stringify(data.user));
-          navigate('/devotee');
+          if (role === 'admin') {
+            localStorage.setItem('user', JSON.stringify({ ...data.user, role: 'admin' }));
+            navigate('/admin');
+          } else {
+            localStorage.setItem('user', JSON.stringify(data.user));
+            navigate('/devotee');
+          }
         } else {
           setErrorMsg(data.message || 'Google Login failed');
         }
