@@ -30,7 +30,7 @@ export default function AdminDashboard() {
 
   // Load telemetry stats
   const fetchStats = () => {
-    fetch('https://teerthsetu-backend.onrender.com/api/admin/stats')
+    fetch('https://teerthsetu.onrender.com/api/admin/stats')
       .then(res => res.json())
       .then(setStats)
       .catch(err => console.error(err));
@@ -38,7 +38,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchStats();
-    fetch('https://teerthsetu-backend.onrender.com/api/admin/analytics')
+    fetch('https://teerthsetu.onrender.com/api/admin/analytics')
       .then(res => res.json())
       .then(setAnalytics)
       .catch(err => console.error(err));
@@ -297,7 +297,7 @@ function WalkinPOS({ stats, fetchStats }) {
     setPrinting(true);
     
     // Call post booking API
-    fetch('https://teerthsetu-backend.onrender.com/api/bookings', {
+    fetch('https://teerthsetu.onrender.com/api/bookings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -479,7 +479,7 @@ function ScannerConsole({ stats, fetchStats }) {
     setScanState('scanning');
     
     setTimeout(() => {
-      fetch('https://teerthsetu-backend.onrender.com/api/admin/scan', {
+      fetch('https://teerthsetu.onrender.com/api/admin/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ qrCode: code })
@@ -774,7 +774,7 @@ function ForecastCard({ icon, title, value, subtitle, bgColor }) {
 function RulesSlotsView({ stats, fetchStats, slots, handleAddSlot, handleDeleteSlot, newSlotTime, setNewSlotTime, newSlotCap, setNewSlotCap }) {
   const handleToggleEmergency = () => {
     const newState = !stats.emergencyMode;
-    fetch('https://teerthsetu-backend.onrender.com/api/admin/config', {
+    fetch('https://teerthsetu.onrender.com/api/admin/config', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ emergencyMode: newState })
