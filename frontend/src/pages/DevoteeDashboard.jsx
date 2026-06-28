@@ -61,18 +61,18 @@ export default function DevoteeDashboard() {
   };
 
   const { isDarkMode, toggleTheme } = useTheme();
-  const finalLogo = "/logo_light.png";
+  const finalLogo = isDarkMode ? "/logo_dark_mode.png" : "/logo_light_mode.png";
 
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-[#0F172A] text-slate-900 dark:text-slate-100 overflow-hidden font-sans transition-colors duration-300">
       
       {/* Devotee Sidebar */}
       <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col p-6 z-20 shrink-0">
-        <div className="mb-8 flex items-center w-full">
+        <div className="mb-8 flex items-center justify-center w-full">
           <img 
             src={finalLogo} 
             alt="TeerthSetu Logo" 
-            className="h-10 w-auto object-contain"
+            className="h-16 w-auto object-contain"
             style={!isDarkMode ? { mixBlendMode: 'multiply' } : {}}
           />
         </div>
