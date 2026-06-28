@@ -101,7 +101,7 @@ export default function Auth() {
         password: formData.password
       };
 
-      fetch('https://teerthsetu.onrender.com/api/devotee/login', {
+      fetch('https://teerthsetu.onrender.com/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -144,7 +144,7 @@ export default function Auth() {
         confirmPassword: formData.confirmPassword
       };
 
-      fetch('https://teerthsetu.onrender.com/api/devotee/register', {
+      fetch('https://teerthsetu.onrender.com/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
