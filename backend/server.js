@@ -179,6 +179,23 @@ app.post('/api/auth/register', (req, res) => {
   });
 });
 
+app.post('/api/auth/google-login', (req, res) => {
+  const { idToken } = req.body;
+  res.json({
+    success: true,
+    token: `mock-jwt-google-${Date.now()}`,
+    user: {
+      email: 'google-user@example.com',
+      name: 'Google Devotee',
+      role: 'devotee',
+      phone: '+91 9999999999',
+      address: 'New Delhi',
+      aadhaar: 'XXXX-XXXX-0000',
+      emergencyContact: 'Family (+91 9999999998)'
+    }
+  });
+});
+
 // Devotee Module
 app.get('/api/temples', (req, res) => res.json(temples));
 

@@ -235,7 +235,7 @@ export default function Auth() {
     onSuccess: (codeResponse) => {
       // The codeResponse contains an access_token. 
       // We'll pass it to our backend to verify and generate our own JWT.
-      fetch('https://teerthsetu.onrender.com/api/devotee/google-login', {
+      fetch('https://teerthsetu.onrender.com/api/auth/google-login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ idToken: codeResponse.access_token })
