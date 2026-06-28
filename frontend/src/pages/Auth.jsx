@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Phone, Mail, Lock, Shield, User, MapPin, Key, UserCheck, X, Eye, EyeOff } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useGoogleLogin } from '@react-oauth/google';
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -80,38 +81,186 @@ export default function Auth() {
     e.preventDefault();
     setErrorMsg('');
 
-    let submitEmail = formData.email || (role === 'admin' ? 'admin@temple' : 'pilgrim@teerthsethu.in');
-
-    if (isLogin && loginMethod === 'email' && role === 'admin') {
-      if (!submitEmail.endsWith('@temple')) {
+    if (role === 'admin') {
+      let submitEmail = formData.email || 'admin@temple';
+      if (isLogin && loginMethod === 'email' && !submitEmail.endsWith('@temple')) {
         setErrorMsg('Administrator email must end with @temple');
         return;
       }
+      // Keep admin bypass
+      localStorage.setItem('token', 'admin-token');
+      localStorage.setItem('user', JSON.stringify({ name: 'Pandit Shastri', role: 'admin' }));
+      navigate('/admin');
+      return;
     }
 
-    const payload = isLogin
-      ? { email: submitEmail, password: formData.password || 'password', role }
-      : { ...formData, role };
+    if (isLogin) {
+      const identifier = loginMethod === 'email' ? formData.email : formData.phone;
+      const payload = {
+        email: identifier,
+        password: formData.password
+      };
 
-    fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      fetch('/api/devotee/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(async res => {
+        const text = await res.text();
+        try {
+          return { status: res.status, data: JSON.parse(text) };
+        } catch {
+          throw new Error(`Status ${res.status} | Non-JSON response: ${text.substring(0, 100)}`);
+        }
+      })
+      .then(({ status, data }) => {
+        if (status === 200) {
+          if (data.requiresOtp) {
+            setOtpSent(true);
+            setOtpTimer(60);
+            setOtpValues(['', '', '', '', '', '']);
+          } else {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            navigate('/devotee');
+          }
+        } else {
+          setErrorMsg(data.message || 'Login failed');
+        }
+      })
+      .catch(err => setErrorMsg('Error: ' + err.message));
+    } else {
+      if (formData.password !== formData.confirmPassword) {
+        setErrorMsg("Passwords do not match.");
+        return;
+      }
+
+      const payload = {
+        fullName: formData.name,
+        email: formData.email,
+        phoneNumber: formData.phone,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword
+      };
+
+      fetch('/api/devotee/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(async res => {
+        const text = await res.text();
+        try {
+          return { status: res.status, data: JSON.parse(text) };
+        } catch {
+          throw new Error(`Status ${res.status} | Non-JSON response: ${text.substring(0, 100)}`);
+        }
+      })
+      .then(({ status, data }) => {
+        if (status === 200) {
+          alert("Registration successful! Please sign in.");
+          setIsLogin(true);
+          setFormData({ ...formData, password: '', confirmPassword: '' });
+        } else {
+          if (data.errors) {
+            const firstError = Object.values(data.errors)[0][0];
+            setErrorMsg(firstError);
+          } else {
+            setErrorMsg(data.message || 'Registration failed');
+          }
+        }
+      })
+      .catch(err => setErrorMsg('Error: ' + err.message));
+    }
+  };
+
+  const handleRequestLoginOtp = () => {
+    const identifier = loginMethod === 'email' ? formData.email : formData.phone;
+    if (!identifier) {
+      alert(`Please enter your ${loginMethod} first.`);
+      return;
+    }
+    fetch('/api/devotee/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: identifier })
     })
-      .then(res => res.json())
-      .then(data => {
-        // Store mock token and user details
+    .then(res => res.json())
+    .then(data => {
+      // Show OTP screen regardless (we could check status, but UI allows retry)
+      setOtpSent(true);
+      setOtpTimer(60);
+      setOtpValues(['', '', '', '', '', '']);
+    })
+    .catch(err => alert('Network error'));
+  };
+
+  const handleVerifyOtp = () => {
+    const otp = otpValues.join('');
+    if (otp.length < 6) {
+      alert("Please enter 6-digit OTP");
+      return;
+    }
+    
+    fetch('/api/devotee/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, otp })
+    })
+    .then(res => res.json().then(data => ({ status: res.status, data })))
+    .then(({ status, data }) => {
+      if (status === 200) {
+        alert("Verified Successfully");
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-
-        // Navigate based on role
-        if (role === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/devotee');
-        }
-      });
+        navigate('/devotee');
+      } else {
+        alert(data.message || "OTP Verification Failed");
+      }
+    })
+    .catch(err => alert('Network error'));
   };
+
+  const handleResendOtp = () => {
+    fetch('/api/devotee/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email })
+    });
+    setOtpTimer(60);
+  };
+
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: (codeResponse) => {
+      // The codeResponse contains an access_token. 
+      // We'll pass it to our backend to verify and generate our own JWT.
+      fetch('/api/devotee/google-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken: codeResponse.access_token })
+      })
+      .then(async res => {
+        const text = await res.text();
+        try {
+          return { status: res.status, data: JSON.parse(text) };
+        } catch {
+          throw new Error(`Status ${res.status} | Non-JSON response: ${text.substring(0, 100)}`);
+        }
+      })
+      .then(({ status, data }) => {
+        if (status === 200) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          navigate('/devotee');
+        } else {
+          setErrorMsg(data.message || 'Google Login failed');
+        }
+      })
+      .catch(err => setErrorMsg('Error: ' + err.message));
+    },
+    onError: (error) => setErrorMsg('Google Login failed: ' + error.message)
+  });
 
   const handleForgotSubmit = (e) => {
     e.preventDefault();
@@ -258,7 +407,7 @@ export default function Auth() {
                       Didn't receive the OTP?{" "}
                       <button
                         type="button"
-                        onClick={() => setOtpTimer(60)}
+                        onClick={handleResendOtp}
                         className="text-saffron hover:underline ml-1"
                       >
                         Resend Now
@@ -268,10 +417,7 @@ export default function Auth() {
                   <button
                     type="button"
                     className="w-full py-4 rounded-xl bg-saffron text-white font-bold text-xl tracking-widest hover:bg-[#e85a28] transition-colors shadow-lg shadow-saffron/30"
-                    onClick={() => {
-                      alert("OTP Verified!");
-                      setOtpSent(false);
-                    }}
+                    onClick={handleVerifyOtp}
                   >
                     ENTER OTP
                   </button>
@@ -391,7 +537,7 @@ export default function Auth() {
                           <div className="flex justify-end mt-[-8px] mb-2">
                             <button
                               type="button"
-                              onClick={() => { setOtpSent(true); setOtpTimer(60); }}
+                              onClick={handleRequestLoginOtp}
                               className={`text-sm font-bold hover:underline ${role === 'admin' ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-900 dark:text-red-400'}`}
                             >
                               Login with OTP instead
@@ -526,6 +672,7 @@ export default function Auth() {
                 {/* Google Sign In Button */}
                 <button
                   type="button"
+                  onClick={handleGoogleLogin}
                   className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white/90 dark:bg-black/40 hover:bg-white dark:hover:bg-white/10 transition-all duration-300 shadow-sm font-serif font-bold text-red-900 dark:text-white"
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24">
