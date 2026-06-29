@@ -229,12 +229,15 @@ export default function Auth() {
     })
       .then(res => res.json())
       .then(data => {
-        // Show OTP screen regardless (we could check status, but UI allows retry)
-        setOtpSent(true);
-        setOtpTimer(60);
-        setOtpValues(['', '', '', '', '', '']);
+        if (data.success) {
+          setOtpSent(true);
+          setOtpTimer(60);
+          setOtpValues(['', '', '', '', '', '']);
+        } else {
+          alert('Server Error: ' + (data.message || 'Failed to send OTP'));
+        }
       })
-      .catch(err => alert('Network error'));
+      .catch(err => alert('Network error: ' + err.message));
   };
 
   const handleVerifyOtp = () => {
