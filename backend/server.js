@@ -1,13 +1,20 @@
 const express = require('express');
 const cors = require('cors');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+// In-Memory store for password reset tokens
+const resetTokens = {};
+const otpStore = {};
+
 // Auto-copy splash image from brain storage to frontend assets
 const fs = require('fs');
-const path = require('path');
 /*
 const srcPath = 'C:\\Users\\sampr\\.gemini\\antigravity-ide\\brain\\ea77fc53-5cee-4e1f-8602-f04d987b847a\\media__1782462250710.jpg';
 const destDir = path.join(__dirname, '..', 'frontend', 'public');
@@ -151,19 +158,67 @@ let hotels = [
 app.get('/api/health', (req, res) => res.json({ status: 'ok', message: 'TeerthSethu API is running' }));
 
 // Auth Module
+app.post('/api/auth/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ success: false, message: 'Email required' });
+
+  const token = crypto.randomBytes(32).toString('hex');
+  resetTokens[token] = { email, expires: Date.now() + 3600000 };
+
+  try {
+    let transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.sendgrid.net',
+      port: process.env.SMTP_PORT || 587,
+      auth: {
+        user: process.env.SMTP_USER || 'apikey',
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    const resetUrl = `http://localhost:5173/reset-password?token=${token}`;
+
+    let info = await transporter.sendMail({
+      from: '"TeerthSetu" <' + (process.env.SMTP_FROM_EMAIL || 'noreply@yourdomain.com') + '>',
+      to: email,
+      subject: "Password Reset Request",
+      text: `Please click the following link to reset your password: ${resetUrl}`,
+      html: `<p>Please click the link below to reset your password:</p><a href="${resetUrl}">${resetUrl}</a>`,
+    });
+
+    console.log("Password reset email actually sent to: %s", email);
+    res.json({ success: true, message: 'Reset link sent' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Failed to send email' });
+  }
+});
+
+app.post('/api/auth/reset-password', (req, res) => {
+  const { token, newPassword } = req.body;
+  const resetData = resetTokens[token];
+
+  if (!resetData || resetData.expires < Date.now()) {
+    return res.status(400).json({ success: false, message: 'Invalid or expired token' });
+  }
+
+  console.log(`Password for ${resetData.email} has been updated to ${newPassword}`);
+  delete resetTokens[token];
+  res.json({ success: true, message: 'Password updated successfully' });
+});
+
 app.post('/api/auth/login', (req, res) => {
   const { email, password, role } = req.body;
-  res.json({ 
-    token: `mock-jwt-${role}-${Date.now()}`, 
-    user: { 
-      email, 
-      role, 
+  res.json({
+    token: `mock-jwt-${role}-${Date.now()}`,
+    user: {
+      email,
+      role,
       name: role === 'admin' ? 'Pandit Shastri' : 'Devendra Kumar',
       phone: '+91 9876543210',
       address: 'Sector 4, Dwarka, New Delhi',
       aadhaar: 'XXXX-XXXX-4920',
       emergencyContact: 'Amit Kumar (+91 9876543211)'
-    } 
+    }
   });
 });
 
@@ -197,6 +252,90 @@ app.post('/api/auth/google-login', (req, res) => {
 });
 
 // Devotee Module
+app.post('/api/devotee/send-otp', async (req, res) => {
+  const { email, phone } = req.body;
+  const identifier = email || phone;
+  if (!identifier) return res.status(400).json({ success: false, message: 'Email or phone required' });
+
+  // Generate 6 digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  otpStore[identifier] = { otp, expires: Date.now() + 5 * 60000 }; // 5 mins
+
+  if (email) {
+    try {
+      let transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.sendgrid.net',
+        port: process.env.SMTP_PORT || 587,
+        auth: {
+          user: process.env.SMTP_USER || 'apikey',
+          pass: process.env.SMTP_PASS,
+        },
+      });
+
+      await transporter.sendMail({
+        from: '"TeerthSetu" <' + (process.env.SMTP_FROM_EMAIL || 'noreply@yourdomain.com') + '>',
+        to: email,
+        subject: "Your TeerthSetu Login OTP",
+        text: `Your login OTP is: ${otp}. It will expire in 5 minutes.`,
+        html: `<h3>Your TeerthSetu Login OTP is:</h3><h1 style="color:#e85a28; letter-spacing: 5px;">${otp}</h1><p>It will expire in 5 minutes.</p>`,
+      });
+
+      console.log("OTP actually sent to: %s", email);
+      res.json({ success: true, message: 'OTP sent successfully' });
+    } catch (err) {
+      console.error("OTP email error:", err);
+      res.status(500).json({ success: false, message: 'Failed to send OTP' });
+    }
+  } else if (phone) {
+    if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
+      try {
+        const twilio = require('twilio');
+        const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+        await client.messages.create({
+          body: `Your TeerthSetu Login OTP is: ${otp}. It will expire in 5 minutes.`,
+          from: process.env.TWILIO_PHONE_NUMBER,
+          to: phone.startsWith('+') ? phone : `+91${phone}`
+        });
+        console.log("Real SMS OTP sent to: %s", phone);
+        res.json({ success: true, message: 'SMS OTP sent successfully' });
+      } catch (err) {
+        console.error("Twilio SMS error:", err);
+        res.status(500).json({ success: false, message: 'Failed to send SMS OTP' });
+      }
+    } else {
+      console.log(`[SIMULATED SMS] to ${phone}: Your TeerthSetu Login OTP is ${otp}`);
+      res.json({ success: true, message: 'OTP sent to phone (Check terminal console)' });
+    }
+  }
+});
+
+app.post('/api/devotee/verify-otp', (req, res) => {
+  const { email, phone, otp } = req.body;
+  const identifier = email || phone;
+  const record = otpStore[identifier];
+
+  if (!record || record.expires < Date.now()) {
+    return res.status(400).json({ success: false, message: 'OTP expired or invalid' });
+  }
+  
+  if (record.otp !== otp) {
+    return res.status(400).json({ success: false, message: 'Incorrect OTP' });
+  }
+
+  delete otpStore[identifier];
+
+  res.json({ 
+    success: true, 
+    token: `mock-jwt-devotee-${Date.now()}`,
+    user: {
+      email: email || `${phone}@temple.com`,
+      role: 'devotee',
+      name: 'Devendra Kumar',
+      phone: phone || '+91 9876543210'
+    }
+  });
+});
+
 app.get('/api/temples', (req, res) => res.json(temples));
 
 // Bookings
@@ -205,13 +344,13 @@ app.get('/api/bookings', (req, res) => res.json(bookings));
 app.post('/api/bookings', (req, res) => {
   const { templeId, date, timeSlot, visitors, specialDarshan, wheelchair, volunteer, medical } = req.body;
   const targetTemple = temples.find(t => t._id === templeId) || { name: 'Unknown Temple' };
-  
+
   const bookingId = `TS-${Date.now().toString().slice(-8)}-${Math.floor(1000 + Math.random() * 9000)}`;
-  
+
   // Decide waitlist based on capacity
   const isHighCrowd = targetTemple.crowdLevel === 'High';
   const waitlistPosition = isHighCrowd && Math.random() > 0.6 ? Math.floor(15 + Math.random() * 30) : 0;
-  
+
   const newBooking = {
     bookingId,
     templeId,
@@ -226,13 +365,13 @@ app.post('/api/bookings', (req, res) => {
     status: 'Upcoming',
     waitlistPosition
   };
-  
+
   bookings.unshift(newBooking);
-  
+
   // Update admin stats
   globalState.activeVisitors += parseInt(visitors) || 1;
   globalState.todayRevenue += (specialDarshan === 'VVIP' ? 500 : 0) * (parseInt(visitors) || 1);
-  
+
   res.json({ success: true, ...newBooking });
 });
 
@@ -274,12 +413,12 @@ app.post('/api/notifications/read-all', (req, res) => {
 // Journey Route Planner
 app.post('/api/planner', (req, res) => {
   const { startingCity, templeId, days, budget } = req.body;
-  
+
   // Mock logic to recommend route
   const start = startingCity || 'Delhi';
   const daysNum = parseInt(days) || 3;
   const costPerDay = budget === 'Economy' ? 1200 : 3500;
-  
+
   res.json({
     route: [
       { name: start, type: 'Origin' },
@@ -321,7 +460,7 @@ app.post('/api/admin/config', (req, res) => {
 
 app.post('/api/admin/scan', (req, res) => {
   const { qrCode } = req.body;
-  
+
   if (!qrCode) {
     return res.status(400).json({ valid: false, message: 'NO CODE PROVIDED' });
   }

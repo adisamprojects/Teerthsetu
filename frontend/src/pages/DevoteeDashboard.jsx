@@ -30,7 +30,7 @@ export default function DevoteeDashboard() {
 
   // Load temples and notifications from APIs
   useEffect(() => {
-    fetch('https://teerthsetu.onrender.com/api/temples')
+    fetch((window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://teerthsetu.onrender.com') + '/api/temples')
       .then(res => res.json())
       .then(setTemples)
       .catch(err => console.error("Error fetching temples:", err));
@@ -39,7 +39,7 @@ export default function DevoteeDashboard() {
   }, []);
 
   const fetchNotifications = () => {
-    fetch('https://teerthsetu.onrender.com/api/notifications')
+    fetch((window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://teerthsetu.onrender.com') + '/api/notifications')
       .then(res => res.json())
       .then(data => {
         setNotifications(data);
@@ -49,7 +49,7 @@ export default function DevoteeDashboard() {
   };
 
   const handleMarkNotificationsRead = () => {
-    fetch('https://teerthsetu.onrender.com/api/notifications/read-all', { method: 'POST' })
+    fetch((window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://teerthsetu.onrender.com') + '/api/notifications/read-all', { method: 'POST' })
       .then(() => fetchNotifications())
       .catch(err => console.error(err));
   };
@@ -377,7 +377,7 @@ function TempleDetailsModal({ temple, user, onClose }) {
     setIsPaying(true);
     setTimeout(() => {
       // Create Booking API call
-      fetch('https://teerthsetu.onrender.com/api/bookings', {
+      fetch((window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://teerthsetu.onrender.com') + '/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -771,7 +771,7 @@ function PlannerView({ temples }) {
     e.preventDefault();
     setLoading(true);
     setTimeout(() => {
-      fetch('https://teerthsetu.onrender.com/api/planner', {
+      fetch((window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://teerthsetu.onrender.com') + '/api/planner', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -940,7 +940,7 @@ function HotelsView() {
   const [bookedHotel, setBookedHotel] = useState(null);
 
   useEffect(() => {
-    fetch('https://teerthsetu.onrender.com/api/hotels')
+    fetch((window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://teerthsetu.onrender.com') + '/api/hotels')
       .then(res => res.json())
       .then(setHotelsList)
       .catch(err => console.error("Error loading accommodation:", err));
@@ -1058,7 +1058,7 @@ function BookingsView() {
   }, []);
 
   const fetchBookings = () => {
-    fetch('https://teerthsetu.onrender.com/api/bookings')
+    fetch((window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://teerthsetu.onrender.com') + '/api/bookings')
       .then(res => res.json())
       .then(setBookingsList)
       .catch(err => console.error("Error fetching bookings:", err));
@@ -1080,7 +1080,7 @@ function BookingsView() {
 
   const handleRescheduleSubmit = (e) => {
     e.preventDefault();
-    fetch('https://teerthsetu.onrender.com/api/bookings/reschedule', {
+    fetch((window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://teerthsetu.onrender.com') + '/api/bookings/reschedule', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

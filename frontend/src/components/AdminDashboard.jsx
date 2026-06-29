@@ -5,14 +5,14 @@ export default function AdminDashboard({ globalState, setGlobalState }) {
   const [stats, setStats] = useState({ activeVisitors: 0, exitedVisitors: 0 });
 
   useEffect(() => {
-    fetch('https://teerthsetu.onrender.com/api/admin/stats')
+    fetch((window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://teerthsetu.onrender.com') + '/api/admin/stats')
       .then(res => res.json())
       .then(data => setStats(data));
   }, []);
 
   const toggleEmergency = () => {
     const newState = !globalState.emergencyMode;
-    fetch('https://teerthsetu.onrender.com/api/admin/config', {
+    fetch((window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://teerthsetu.onrender.com') + '/api/admin/config', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ emergencyMode: newState })
