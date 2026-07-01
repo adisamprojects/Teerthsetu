@@ -173,6 +173,9 @@ app.post('/api/auth/forgot-password', async (req, res) => {
         user: process.env.SMTP_USER || 'apikey',
         pass: process.env.SMTP_PASS,
       },
+      tls: {
+        rejectUnauthorized: false
+      }
     });
 
     const resetUrl = `http://localhost:5173/reset-password?token=${token}`;
@@ -270,6 +273,9 @@ app.post('/api/devotee/send-otp', async (req, res) => {
           user: process.env.SMTP_USER || 'apikey',
           pass: process.env.SMTP_PASS,
         },
+        tls: {
+          rejectUnauthorized: false
+        }
       });
 
       await transporter.sendMail({

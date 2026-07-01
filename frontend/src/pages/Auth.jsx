@@ -22,6 +22,27 @@ export default function Auth() {
   const [otpSent, setOtpSent] = useState(false);
   const [otpValues, setOtpValues] = useState(['', '', '', '', '', '']);
   const [otpTimer, setOtpTimer] = useState(60);
+  const [showVideo, setShowVideo] = useState(false);
+  const [showVerifiedText, setShowVerifiedText] = useState(true);
+
+  const triggerSuccessAnimation = (userData, token, route, isOtp = false) => {
+    setShowVideo(true);
+    
+    if (isOtp) {
+      setShowVerifiedText(true);
+      setTimeout(() => {
+        setShowVerifiedText(false);
+      }, 2000);
+    } else {
+      setShowVerifiedText(false);
+    }
+
+    setTimeout(() => {
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      navigate(route);
+    }, isOtp ? 4000 : 2000);
+  };
 
   // Slideshow states
   const temples = [
@@ -146,9 +167,7 @@ export default function Auth() {
               setOtpTimer(60);
               setOtpValues(['', '', '', '', '', '']);
             } else {
-              localStorage.setItem('token', data.token);
-              localStorage.setItem('user', JSON.stringify(data.user));
-              navigate('/devotee');
+              triggerSuccessAnimation(data.user, data.token, '/devotee');
             }
           } else {
             setErrorMsg(data.message || 'Login failed');
@@ -257,10 +276,7 @@ export default function Auth() {
       .then(res => res.json().then(data => ({ status: res.status, data })))
       .then(({ status, data }) => {
         if (status === 200) {
-          alert("Verified Successfully");
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('user', JSON.stringify(data.user));
-          navigate('/devotee');
+          triggerSuccessAnimation(data.user, data.token, '/devotee', true);
         } else {
           alert(data.message || "OTP Verification Failed");
         }
@@ -303,13 +319,10 @@ export default function Auth() {
               return;
             }
 
-            localStorage.setItem('token', data.token);
             if (role === 'admin') {
-              localStorage.setItem('user', JSON.stringify({ ...data.user, role: 'admin' }));
-              navigate('/admin');
+              triggerSuccessAnimation({ ...data.user, role: 'admin' }, data.token, '/admin');
             } else {
-              localStorage.setItem('user', JSON.stringify(data.user));
-              navigate('/devotee');
+              triggerSuccessAnimation(data.user, data.token, '/devotee');
             }
           } else {
             setErrorMsg(data.message || 'Google Login failed');
@@ -358,6 +371,43 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#1A1A2E] text-slate-900 dark:text-white flex items-center justify-center p-6 relative transition-colors duration-300 overflow-hidden">
+      <AnimatePresence>
+        {showVideo && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black overflow-hidden pointer-events-none"
+          >
+            <video 
+              src="/otp.mp4" 
+              autoPlay 
+              playsInline
+              muted
+              className="absolute inset-0 w-full h-full object-cover scale-150 transform brightness-[0.3]"
+            />
+            <AnimatePresence>
+              {showVerifiedText && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.1 }}
+                  transition={{ duration: 0.4, type: "spring" }}
+                  className="relative z-10 flex flex-col items-center justify-center h-full w-full"
+                >
+                  <div className="flex flex-col items-center">
+                    <div className="w-20 h-20 rounded-full bg-emerald-500 border-4 border-emerald-400 flex items-center justify-center mb-5 shadow-[0_0_30px_rgba(52,211,153,0.4)]">
+                      <UserCheck className="h-10 w-10 text-emerald-950" />
+                    </div>
+                    <p className="text-emerald-400 font-serif text-4xl md:text-5xl tracking-[0.25em] font-black drop-shadow-xl uppercase">Verified</p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Close/Back Button */}
       <Link
