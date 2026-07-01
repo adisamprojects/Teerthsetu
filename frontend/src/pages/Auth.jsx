@@ -378,14 +378,14 @@ export default function Auth() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black overflow-hidden pointer-events-none"
+            className={`fixed inset-0 z-[100] flex items-center justify-center overflow-hidden pointer-events-none ${isDarkMode ? 'bg-black' : 'bg-slate-50'}`}
           >
             <video 
-              src="/otp.mp4" 
+              src={isDarkMode ? "/otp.mp4" : "/otp_light_mode.mp4"} 
               autoPlay 
               playsInline
               muted
-              className="absolute inset-0 w-full h-full object-cover scale-150 transform brightness-[0.3]"
+              className={`absolute inset-0 w-full h-full object-cover scale-150 transform ${isDarkMode ? 'brightness-[0.3]' : 'brightness-[0.6] contrast-[1.1]'}`}
             />
             <AnimatePresence>
               {showVerifiedText && (
