@@ -342,18 +342,21 @@ export default function Auth() {
     e.preventDefault();
     if (!forgotEmail) return;
 
+    const emailToSend = forgotEmail;
+    
+    // Optimistically show success message immediately for zero latency
+    setForgotSuccess(true);
+
     fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: forgotEmail })
+      body: JSON.stringify({ email: emailToSend })
     })
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          setForgotSuccess(true);
           if (data.previewUrl) {
             console.log("Test Email sent! Preview at:", data.previewUrl);
-            // For testing, open it in a new tab automatically or show it
             alert("TEST MODE: Email sent! Check your terminal console for the email preview link.");
           }
           setTimeout(() => {
@@ -362,11 +365,13 @@ export default function Auth() {
             setForgotEmail('');
           }, 3000);
         } else {
+          setForgotSuccess(false);
           alert(data.message || 'Failed to send reset link');
         }
       })
       .catch(err => {
         console.error(err);
+        setForgotSuccess(false);
         alert('Network error');
       });
   };
