@@ -24,6 +24,15 @@ export default function Auth() {
   const [otpTimer, setOtpTimer] = useState(60);
   const [showVideo, setShowVideo] = useState(false);
   const [showVerifiedText, setShowVerifiedText] = useState(true);
+  const [showAdminHint, setShowAdminHint] = useState(true);
+
+  useEffect(() => {
+    if (role === 'admin') {
+      setShowAdminHint(true);
+      const timer = setTimeout(() => setShowAdminHint(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [role]);
 
   const triggerSuccessAnimation = (userData, token, route, isOtp = false) => {
     setShowVideo(true);
@@ -123,28 +132,18 @@ export default function Auth() {
     setErrorMsg('');
     setEmailError('');
 
-    if (role === 'admin') {
-      let submitEmail = formData.email || 'admin@temple';
-      if (isLogin && loginMethod === 'email' && !submitEmail.endsWith('@temple')) {
-        setEmailError('Administrator email must end with @temple');
-        return;
-      }
-      // Keep admin bypass
-      localStorage.setItem('token', 'admin-token');
-      localStorage.setItem('user', JSON.stringify({ name: 'Pandit Shastri', role: 'admin' }));
-      navigate('/admin');
-      return;
-    }
-
     if (isLogin) {
       const identifier = loginMethod === 'email' ? formData.email : formData.phone;
-      if (loginMethod === 'email' && role !== 'admin' && !identifier.endsWith('@gmail.com')) {
-        setEmailError('Please enter a valid Gmail address ending with @gmail.com.');
-        return;
+      if (loginMethod === 'email') {
+        if (role !== 'admin' && !identifier.endsWith('@gmail.com')) {
+          setEmailError('Please enter a valid Gmail address ending with @gmail.com.');
+          return;
+        }
       }
       const payload = {
         email: identifier,
-        password: formData.password
+        password: formData.password,
+        role: role
       };
 
       fetch(`${API_BASE_URL}/api/auth/login`, {
@@ -167,7 +166,7 @@ export default function Auth() {
               setOtpTimer(60);
               setOtpValues(['', '', '', '', '', '']);
             } else {
-              triggerSuccessAnimation(data.user, data.token, '/devotee');
+              triggerSuccessAnimation(data.user, data.token, role === 'admin' ? '/admin' : '/devotee');
             }
           } else {
             setErrorMsg(data.message || 'Login failed');
@@ -307,7 +306,7 @@ export default function Auth() {
       fetch(`${API_BASE_URL}/api/auth/google-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken: codeResponse.access_token })
+        body: JSON.stringify({ idToken: codeResponse.access_token, role: role })
       })
         .then(async res => {
           const text = await res.text();
@@ -319,11 +318,6 @@ export default function Auth() {
         })
         .then(({ status, data }) => {
           if (status === 200) {
-            if (role === 'admin' && !data.user.email.endsWith('@temple')) {
-              setErrorMsg('Administrator Google account must end with @temple');
-              return;
-            }
-
             if (role === 'admin') {
               triggerSuccessAnimation({ ...data.user, role: 'admin' }, data.token, '/admin');
             } else {
@@ -643,9 +637,9 @@ export default function Auth() {
                                 <span className="text-sm font-medium text-slate-700 leading-snug">{emailError}</span>
                               </motion.div>
                             )}
-                            {role === 'admin' && (
-                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 pl-1 font-medium">
-                                Note: Email must end with @temple
+                            {role === 'admin' && showAdminHint && (
+                              <p className="text-xs text-red-500 dark:text-red-400 mt-2 pl-1 font-medium transition-opacity duration-500 opacity-100">
+                                Note: Must use an authorized management account
                               </p>
                             )}
                           </div>

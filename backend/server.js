@@ -209,8 +209,22 @@ app.post('/api/auth/reset-password', (req, res) => {
   res.json({ success: true, message: 'Password updated successfully' });
 });
 
+// Authorized admin emails set by management/developers
+const authorizedAdmins = [
+  'admin@teerthsetu.com',
+  'developer@teerthsetu.com',
+  'management@teerthsetu.com'
+];
+
 app.post('/api/auth/login', (req, res) => {
   const { email, password, role } = req.body;
+  
+  if (role === 'admin') {
+    if (!authorizedAdmins.includes(email)) {
+      return res.status(403).json({ success: false, message: 'Access Denied: Account not authorized for admin portal. Contact management.' });
+    }
+  }
+
   res.json({
     token: `mock-jwt-${role}-${Date.now()}`,
     user: {
@@ -238,14 +252,22 @@ app.post('/api/auth/register', (req, res) => {
 });
 
 app.post('/api/auth/google-login', (req, res) => {
-  const { idToken } = req.body;
+  const { idToken, role } = req.body;
+  const mockEmail = 'google-user@example.com';
+  
+  if (role === 'admin') {
+    if (!authorizedAdmins.includes(mockEmail)) {
+      return res.status(403).json({ success: false, message: 'Access Denied: Google Account not authorized for admin portal. Contact management.' });
+    }
+  }
+
   res.json({
     success: true,
     token: `mock-jwt-google-${Date.now()}`,
     user: {
-      email: 'google-user@example.com',
-      name: 'Google Devotee',
-      role: 'devotee',
+      email: mockEmail,
+      name: 'Google User',
+      role: role || 'devotee',
       phone: '+91 9999999999',
       address: 'New Delhi',
       aadhaar: 'XXXX-XXXX-0000',
