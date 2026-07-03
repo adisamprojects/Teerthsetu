@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  MapPin, Clock, Users, QrCode, LogOut, Bell, Compass, Calendar, 
-  Search, ShieldAlert, HeartHandshake, Hotel, Map, User, CheckCircle, 
+import {
+  MapPin, Clock, Users, QrCode, LogOut, Bell, Compass, Calendar,
+  Search, ShieldAlert, HeartHandshake, Hotel, Map, User, CheckCircle,
   CreditCard, ChevronRight, X, Sparkles, Filter, Info, PhoneCall, Star, Phone, Activity, Sun, Moon
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from 'recharts';
 
 export default function DevoteeDashboard() {
   const [activeTab, setActiveTab] = useState('explore'); // explore, planner, hotels, bookings, profile, alerts
@@ -37,7 +37,7 @@ export default function DevoteeDashboard() {
           savedTemples: parsed.savedTemples || ['1', '3'],
           accessibilityPreset: parsed.accessibilityPreset || { wheelchair: false, volunteer: false }
         };
-      } catch(e) {}
+      } catch (e) { }
     }
     return {
       name: 'User Name',
@@ -91,30 +91,30 @@ export default function DevoteeDashboard() {
 
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-[#0F172A] text-slate-900 dark:text-slate-100 overflow-hidden font-sans transition-colors duration-300">
-      
+
       {/* Devotee Sidebar */}
       <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col p-6 z-20 shrink-0">
         <div className="mb-8 flex items-center justify-center w-full">
-          <img 
-            src={finalLogo} 
-            alt="TeerthSetu Logo" 
+          <img
+            src={finalLogo}
+            alt="TeerthSetu Logo"
             className="h-16 w-auto object-contain"
             style={!isDarkMode ? { mixBlendMode: 'multiply' } : {}}
           />
         </div>
-        
+
         {/* Navigation Menu */}
         <nav className="flex flex-col gap-2 flex-1">
-          <SidebarButton active={activeTab === 'explore'} icon={<Compass className="h-5 w-5"/>} text="Temple Booking" onClick={() => setActiveTab('explore')} />
-          <SidebarButton active={activeTab === 'hotels'} icon={<Hotel className="h-5 w-5"/>} text="Accommodation" onClick={() => setActiveTab('hotels')} />
-          <SidebarButton active={activeTab === 'travels'} icon={<Activity className="h-5 w-5"/>} text="Travels" onClick={() => setActiveTab('travels')} />
-          <SidebarButton active={activeTab === 'planner'} icon={<Map className="h-5 w-5"/>} text="AI Journey Planner" onClick={() => setActiveTab('planner')} />
-          <SidebarButton active={activeTab === 'nearby'} icon={<MapPin className="h-5 w-5"/>} text="Nearby Suggestions" onClick={() => setActiveTab('nearby')} />
-          <SidebarButton active={activeTab === 'bookings'} icon={<QrCode className="h-5 w-5"/>} text="My Tickets" onClick={() => setActiveTab('bookings')} />
-          <SidebarButton active={activeTab === 'profile'} icon={<User className="h-5 w-5"/>} text="My Profile" onClick={() => setActiveTab('profile')} />
-          
-          <button 
-            onClick={() => setActiveTab('alerts')} 
+          <SidebarButton active={activeTab === 'explore'} icon={<Compass className="h-5 w-5" />} text="Temple Booking" onClick={() => setActiveTab('explore')} />
+          <SidebarButton active={activeTab === 'hotels'} icon={<Hotel className="h-5 w-5" />} text="Accommodation" onClick={() => setActiveTab('hotels')} />
+          <SidebarButton active={activeTab === 'travels'} icon={<Activity className="h-5 w-5" />} text="Travels" onClick={() => setActiveTab('travels')} />
+          <SidebarButton active={activeTab === 'planner'} icon={<Map className="h-5 w-5" />} text="AI Journey Planner" onClick={() => setActiveTab('planner')} />
+          <SidebarButton active={activeTab === 'nearby'} icon={<MapPin className="h-5 w-5" />} text="Nearby Suggestions" onClick={() => setActiveTab('nearby')} />
+          <SidebarButton active={activeTab === 'bookings'} icon={<QrCode className="h-5 w-5" />} text="My Tickets" onClick={() => setActiveTab('bookings')} />
+          <SidebarButton active={activeTab === 'profile'} icon={<User className="h-5 w-5" />} text="My Profile" onClick={() => setActiveTab('profile')} />
+
+          <button
+            onClick={() => setActiveTab('alerts')}
             className={`flex items-center justify-between p-3 rounded-xl transition-all ${activeTab === 'alerts' ? 'bg-saffron text-slate-900 dark:text-white shadow-lg shadow-saffron/20 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:bg-slate-800 hover:text-slate-900 dark:text-white'}`}
           >
             <div className="flex items-center gap-3">
@@ -159,10 +159,11 @@ export default function DevoteeDashboard() {
       <main className="flex-1 overflow-y-auto p-8 relative flex flex-col">
         {/* Glow backdrop */}
         <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-saffron/5 rounded-full blur-[120px] pointer-events-none" />
-        
+
         {/* Active tab renderer */}
         <div className="flex-1 z-10 max-w-6xl mx-auto w-full">
           {activeTab === 'explore' && <ExploreView temples={temples} setActiveTab={setActiveTab} user={user} />}
+          {activeTab === 'analysis' && <AnalysisView temples={temples} user={user} setActiveTab={setActiveTab} />}
           {activeTab === 'planner' && <PlannerView temples={temples} />}
           {activeTab === 'hotels' && <HotelsView />}
           {activeTab === 'travels' && (
@@ -190,8 +191,8 @@ export default function DevoteeDashboard() {
 
 function SidebarButton({ active, icon, text, onClick }) {
   return (
-    <button 
-      onClick={onClick} 
+    <button
+      onClick={onClick}
       className={`flex items-center gap-3 p-3 rounded-xl text-left transition-all ${active ? 'bg-saffron text-slate-900 dark:text-white shadow-lg shadow-saffron/20 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:bg-slate-800 hover:text-slate-900 dark:text-white'}`}
     >
       {icon}
@@ -201,10 +202,205 @@ function SidebarButton({ active, icon, text, onClick }) {
 }
 
 // ==========================================
+
+// ==========================================
+// VIEW 1.5: TEMPLE ANALYSIS / QUICK REVIEW
+// ==========================================
+function AnalysisView({ temples, user, setActiveTab }) {
+  const [sidebarSearch, setSidebarSearch] = useState('');
+  const filteredSidebarTemples = temples.filter(t => 
+    t.name.toLowerCase().includes(sidebarSearch.toLowerCase()) || 
+    t.location.toLowerCase().includes(sidebarSearch.toLowerCase())
+  );
+  const [selectedId, setSelectedId] = useState(temples[0]?._id);
+  const [bookingTemple, setBookingTemple] = useState(null);
+  const temple = temples.find(t => t._id === selectedId) || temples[0];
+  
+  const currentHour = new Date().getHours();
+  const generateData = () => {
+    const data = [];
+    const baseWait = temple?.waitTime || 45;
+    for (let h = 6; h <= 21; h++) {
+      let multiplier = 0.3;
+      if (h >= 9 && h <= 12) multiplier = 0.8 + (h === 11 ? 0.6 : 0);
+      if (h >= 17 && h <= 19) multiplier = 0.7 + (h === 18 ? 0.4 : 0);
+      if (h === 14 || h === 15) multiplier = 0.5;
+      const noise = ((temple?._id?.charCodeAt(0) || 0) + h) % 3 === 0 ? 0.1 : -0.1;
+      data.push({
+        hour: h,
+        time: h > 12 ? (h - 12) + ' PM' : (h === 12 ? '12 PM' : h + ' AM'),
+        wait: Math.max(5, Math.floor(baseWait * (multiplier + noise))),
+        isCurrent: h === currentHour
+      });
+    }
+    return data;
+  };
+  const hourlyPredictionData = generateData();
+
+  if (!temple) return null;
+
+  return (
+    <div className="h-[85vh] flex flex-col md:flex-row gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Sidebar List */}
+      <div className="w-full md:w-1/3 lg:w-1/4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden flex flex-col shadow-xl">
+        <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 relative overflow-hidden">
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-saffron/10 rounded-full blur-2xl pointer-events-none"></div>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2 relative z-10">
+            <Activity className="h-6 w-6 text-saffron" /> Insights
+          </h2>
+          <p className="text-sm text-slate-500 mt-1 relative z-10 mb-4">AI crowd analysis & details</p>
+          <div className="relative z-10">
+            <input 
+              type="text" 
+              placeholder="Search temples..."
+              value={sidebarSearch}
+              onChange={(e) => setSidebarSearch(e.target.value)}
+              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl pl-9 pr-3 py-2 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:border-saffron transition-all"
+            />
+            <Search className="h-4 w-4 text-slate-400 absolute left-3 top-2.5" />
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
+          {filteredSidebarTemples.map(t => (
+            <button
+              key={t._id}
+              onClick={() => setSelectedId(t._id)}
+              className={`flex items-center gap-4 p-3 rounded-2xl transition-all text-left ${selectedId === t._id ? 'bg-saffron/10 border-saffron border shadow-sm' : 'hover:bg-slate-50 dark:hover:bg-slate-800 border border-transparent'}`}
+            >
+              <img src={t.image || "https://images.unsplash.com/photo-1600100397608-f010e42edb7a?auto=format&fit=crop&w=100&q=80"} alt={t.name} className="w-12 h-12 rounded-xl object-cover shadow-sm flex-shrink-0" />
+              <div className="min-w-0 flex-1">
+                <h4 className={`text-sm font-bold truncate ${selectedId === t._id ? 'text-saffron' : 'text-slate-900 dark:text-white'}`}>{t.name}</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate flex items-center gap-1 mt-0.5">
+                  <MapPin className="h-3 w-3 shrink-0" /> {t.location}
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Main Details Panel */}
+      <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xl flex flex-col lg:flex-row relative">
+        <button onClick={() => setActiveTab('explore')} className="absolute top-4 right-4 bg-white dark:bg-slate-950/60 p-2 rounded-full border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white hover:bg-white dark:bg-slate-900 shadow-xl transition-all z-[60]">
+          <X className="h-5 w-5" />
+        </button>
+        {/* Left Side: Image, General Info */}
+        <div className="w-full lg:w-2/5 bg-slate-950 relative border-b lg:border-b-0 lg:border-r border-slate-800 lg:border-slate-850">
+          <div className="h-64 lg:h-full relative">
+            <img
+              src={temple.image || "https://images.unsplash.com/photo-1600100397608-f010e42edb7a?auto=format&fit=crop&w=600&q=80"}
+              alt={temple.name}
+              className="w-full h-full object-cover opacity-80"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+            <div className="absolute bottom-6 left-6 right-6 text-white">
+              <span className="text-saffron font-bold text-xs uppercase tracking-widest block mb-1">DEITY TEMPLE DETAILS</span>
+              <h3 className="text-3xl font-bold mb-2 leading-tight">{temple.name}</h3>
+              <p className="text-slate-300 text-sm flex items-center gap-1"><MapPin className="h-4.5 w-4.5 text-saffron shrink-0" /> {temple.location}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side: Analysis Data */}
+        <div className="w-full lg:w-3/5 p-6 lg:p-8 overflow-y-auto flex flex-col justify-between bg-white dark:bg-slate-900">
+          <div className="space-y-8">
+            <div>
+              <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Temple History & Rules</h4>
+              <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-5">{temple.history}</p>
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="bg-slate-50 dark:bg-slate-950/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                  <span className="text-slate-500 block mb-1 text-xs">Darshan Hours</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{temple.timings}</span>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-950/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                  <span className="text-slate-500 block mb-1 text-xs">Dress Code</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{temple.dressCode}</span>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-950/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                  <span className="text-slate-500 block mb-1 text-xs">Entries Today</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{(temple?.waitTime * 314 + 8540).toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* AI Crowd Predictions */}
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-gold animate-pulse" /> AI Crowd Prediction
+                </h4>
+                <span className="text-sm text-slate-600 dark:text-slate-400">Current Wait: <strong className="text-gold text-lg">{temple.waitTime}m</strong></span>
+              </div>
+
+              {/* Recharts Hourly Wait Times Forecast */}
+              <div className="h-40 w-full bg-slate-50 dark:bg-slate-950/40 pt-4 pb-2 px-1 rounded-2xl border border-slate-200 dark:border-slate-800 mb-4 flex items-end">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={hourlyPredictionData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                    <XAxis 
+                      dataKey="time" 
+                      stroke="#94A3B8" 
+                      fontSize={10} 
+                      axisLine={false} 
+                      tickLine={false}
+                      tick={{fill: '#64748B'}}
+                      interval={2} 
+                    />
+                    <Tooltip 
+                      cursor={{fill: 'rgba(148, 163, 184, 0.1)'}} 
+                      contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '8px', fontSize: 12, color: '#fff', border: '1px solid #334155' }} 
+                      formatter={(value) => [`${value} mins`, 'Est. Wait Time']}
+                      labelStyle={{color: '#94A3B8', marginBottom: '4px'}}
+                    />
+                    <Bar dataKey="wait" radius={[4, 4, 0, 0]} maxBarSize={40}>
+                      {hourlyPredictionData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.isCurrent ? '#FF6B35' : 'var(--bar-color, #475569)'} className="dark:[--bar-color:#334155] [--bar-color:#CBD5E1]" />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <p className="text-xs text-slate-500 italic text-center">
+                🔥 Best hours to visit: <strong className="text-emerald-500 dark:text-emerald-400">6:00 AM - 9:00 AM</strong>. Expect heavy peaks at noon due to afternoon Aarti.
+              </p>
+            </div>
+
+            {/* Facilities list */}
+            <div>
+              <h4 className="text-base font-semibold text-slate-900 dark:text-white mb-3">Available Facilities</h4>
+              <div className="flex flex-wrap gap-2">
+                {temple.facilities?.map(f => (
+                  <span key={f} className="text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-4 py-1.5 rounded-full shadow-sm">{f}</span>
+                )) || 'None'}
+              </div>
+            </div>
+            
+            <div className="pt-6 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+              <button
+                onClick={() => setBookingTemple(temple)}
+                className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-2xl font-bold text-base transition-all shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2"
+              >
+                Book Darshan Pass <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {bookingTemple && (
+        <TempleDetailsModal
+          temple={bookingTemple}
+          user={user}
+          onClose={() => setBookingTemple(null)}
+        />
+      )}
+    </div>
+  );
+}
+
 // VIEW 1: HOME & TEMPLE DISCOVERY (Screens 5 & 6)
 // ==========================================
 function ExploreView({ temples, setActiveTab, user, templesLimit = 3 }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [stateFilter, setStateFilter] = useState('All');
   const [crowdFilter, setCrowdFilter] = useState('All');
   const [selectedTemple, setSelectedTemple] = useState(null);
@@ -223,10 +419,10 @@ function ExploreView({ temples, setActiveTab, user, templesLimit = 3 }) {
     const R = 6371; // km
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return (R * c).toFixed(1);
   };
 
@@ -253,16 +449,18 @@ function ExploreView({ temples, setActiveTab, user, templesLimit = 3 }) {
       <div className="space-y-6">
         <div className="flex justify-between items-end border-b border-slate-200 dark:border-slate-800 pb-4">
           <div>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Shrine Discovery</h3>
-            <p className="text-slate-600 dark:text-slate-400 text-sm mt-0.5">Explore popular shrines, forecast queues, and secure Darshan passes.</p>
+            <h3 className="text-4xl text-saffron drop-shadow-md flex items-center gap-3" style={{ fontFamily: "'Yatra One', cursive", letterSpacing: "1px" }}>
+              Swagatam <span className="text-4xl drop-shadow-[0_0_12px_rgba(251,146,60,0.5)] animate-pulse">🪷</span>
+            </h3>
+            <p className="text-slate-800 dark:text-slate-200 text-base mt-1 italic" style={{ fontFamily: "'Cinzel', serif" }}>Where hearts meet the Divine.</p>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white dark:bg-slate-900/30 p-4 rounded-2xl border border-slate-850">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white dark:bg-slate-900/30 p-4 rounded-2xl border border-slate-850">
           <div>
-            <select 
-              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:border-saffron transition-all"
+            <select
+              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:border-saffron transition-all appearance-none"
               value={stateFilter}
               onChange={e => {
                 setStateFilter(e.target.value);
@@ -274,36 +472,47 @@ function ExploreView({ temples, setActiveTab, user, templesLimit = 3 }) {
             </select>
           </div>
 
-          <div className="relative col-span-2">
-            <select 
-              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:border-saffron transition-all appearance-none"
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-            >
-              <option value="">All Temples</option>
-              {temples
-                .filter(t => stateFilter === 'All' || t.location.includes(stateFilter))
-                .map(t => (
-                  <option key={t._id} value={t.name}>{t.name}</option>
-                ))
-              }
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-            </div>
-          </div>
+          <div className="relative col-span-2 flex gap-3">
+            <div className="relative flex-1">
+              <input 
+                type="text"
+                placeholder={stateFilter !== 'All' ? `Search for a temple in ${stateFilter}...` : "Search for any temple..."}
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-3 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:border-saffron transition-all"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setShowSuggestions(false)}
+              />
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              </div>
 
-          <div>
-            <select 
-              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:border-saffron transition-all"
-              value={crowdFilter}
-              onChange={e => setCrowdFilter(e.target.value)}
-            >
-              <option value="All">Filter: Crowd Level</option>
-              <option value="Low">Low Crowds</option>
-              <option value="Moderate">Moderate Crowds</option>
-              <option value="High">High Crowds</option>
-            </select>
+              {/* Suggestions Dropdown */}
+              {showSuggestions && searchTerm.length > 0 && filteredTemples.length > 0 && (
+                <div className="absolute z-50 w-full mt-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl max-h-60 overflow-y-auto overflow-x-hidden text-left">
+                  {filteredTemples.map(t => (
+                    <div 
+                      key={t._id} 
+                      className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-3 border-b border-slate-100 dark:border-slate-700 last:border-0 transition-colors"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setSearchTerm(t.name);
+                        setShowSuggestions(false);
+                      }}
+                    >
+                      <img src={t.image || "https://images.unsplash.com/photo-1600100397608-f010e42edb7a?auto=format&fit=crop&w=100&q=80"} alt={t.name} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{t.name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{t.location}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button className="bg-saffron text-white px-6 py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors shadow-sm whitespace-nowrap">
+              Search
+            </button>
           </div>
         </div>
       </div>
@@ -312,13 +521,13 @@ function ExploreView({ temples, setActiveTab, user, templesLimit = 3 }) {
       <div className="flex justify-between items-center bg-white dark:bg-slate-900/40 p-6 rounded-3xl border border-slate-850">
         <div>
           <h2 className="text-3xl font-bold flex items-center gap-2">
-            Hello, {user.name.split(' ')[0]}! <span className="animate-wiggle">🙏</span>
+            Namaste,{" "}{user.name && user.name.trim() !== '' ? user.name.trim() : 'Devotee'}! <span className="animate-wiggle">🙏</span>
           </h2>
           <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">Ready for your spiritual journey? Plan slots and track crowding live.</p>
         </div>
         <div className="flex gap-3">
-          <button onClick={() => setSelectedTemple(temples[0])} className="bg-saffron/15 text-saffron border border-saffron/30 hover:bg-saffron/20 px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2">
-            <Calendar className="h-4 w-4" /> Book Quick Darshan
+          <button onClick={() => setActiveTab('analysis')} className="bg-saffron/15 text-saffron border border-saffron/30 hover:bg-saffron/20 px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2">
+            <Activity className="h-4 w-4" /> Quick Review
           </button>
           <button onClick={() => setActiveTab('planner')} className="bg-gold/15 text-gold border border-gold/30 hover:bg-gold/20 px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2">
             <Map className="h-4 w-4" /> Plan Multi-Route
@@ -329,21 +538,21 @@ function ExploreView({ temples, setActiveTab, user, templesLimit = 3 }) {
       {/* Mini Dashboard Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl flex items-center gap-4">
-          <div className="p-3 bg-saffron/10 text-saffron rounded-xl"><Users className="h-6 w-6"/></div>
+          <div className="p-3 bg-saffron/10 text-saffron rounded-xl"><Users className="h-6 w-6" /></div>
           <div>
             <h4 className="text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Crowd Status Today</h4>
             <p className="text-lg font-bold text-slate-900 dark:text-white">Moderate Surge</p>
           </div>
         </div>
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl flex items-center gap-4">
-          <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl"><Clock className="h-6 w-6"/></div>
+          <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl"><Clock className="h-6 w-6" /></div>
           <div>
             <h4 className="text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Avg Waiting Hours Saved</h4>
             <p className="text-lg font-bold text-slate-900 dark:text-white">1.5 Hrs / Slot</p>
           </div>
         </div>
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl flex items-center gap-4">
-          <div className="p-3 bg-blue-500/10 text-blue-400 rounded-xl"><Calendar className="h-6 w-6"/></div>
+          <div className="p-3 bg-blue-500/10 text-blue-400 rounded-xl"><Calendar className="h-6 w-6" /></div>
           <div>
             <h4 className="text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Upcoming Festival Alert</h4>
             <p className="text-lg font-bold text-slate-900 dark:text-white">Brahmotsavam (Tirupati)</p>
@@ -356,22 +565,21 @@ function ExploreView({ temples, setActiveTab, user, templesLimit = 3 }) {
         {/* Temple Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTemples.map(t => (
-            <motion.div 
-              key={t._id} 
+            <motion.div
+              key={t._id}
               whileHover={{ y: -5 }}
               className="bg-white dark:bg-slate-900 border border-slate-850 rounded-2xl overflow-hidden shadow-lg hover:border-gold/30 transition-all flex flex-col"
             >
               <div className="h-44 bg-white dark:bg-slate-800 relative">
-                <img 
-                  src={t.image || "https://images.unsplash.com/photo-1600100397608-f010e42edb7a?auto=format&fit=crop&w=600&q=80"} 
+                <img
+                  src={t.image || "https://images.unsplash.com/photo-1600100397608-f010e42edb7a?auto=format&fit=crop&w=600&q=80"}
                   alt={t.name}
                   className="w-full h-full object-cover"
                 />
-                <span className={`absolute top-4 right-4 px-3 py-1 text-xs font-extrabold rounded-full ${
-                  t.crowdLevel === 'High' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-                  t.crowdLevel === 'Moderate' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
-                  'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                }`}>
+                <span className={`absolute top-4 right-4 px-3 py-1 text-xs font-extrabold rounded-full ${t.crowdLevel === 'High' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
+                    t.crowdLevel === 'Moderate' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
+                      'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                  }`}>
                   {t.crowdLevel} Crowd
                 </span>
               </div>
@@ -379,12 +587,12 @@ function ExploreView({ temples, setActiveTab, user, templesLimit = 3 }) {
                 <div>
                   <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-1.5">{t.name}</h4>
                   <div className="flex flex-col gap-1 mb-4">
-                    <p className="text-slate-600 dark:text-slate-400 text-sm flex items-center gap-1.5"><MapPin className="h-4 w-4 text-saffron"/> {t.location}</p>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm flex items-center gap-1.5"><MapPin className="h-4 w-4 text-saffron" /> {t.location}</p>
                     {userLocation && t.lat && t.lon && (
-                      <p className="text-slate-500 text-xs flex items-center gap-1.5"><Map className="h-3.5 w-3.5 text-blue-400"/> {calculateDistance(userLocation.lat, userLocation.lon, t.lat, t.lon)} km away (GPS)</p>
+                      <p className="text-slate-500 text-xs flex items-center gap-1.5"><Map className="h-3.5 w-3.5 text-blue-400" /> {calculateDistance(userLocation.lat, userLocation.lon, t.lat, t.lon)} km away (GPS)</p>
                     )}
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4 bg-white dark:bg-slate-950/40 p-3 rounded-xl text-xs mb-4">
                     <div>
                       <span className="text-slate-500 block mb-0.5">Wait Time</span>
@@ -396,7 +604,7 @@ function ExploreView({ temples, setActiveTab, user, templesLimit = 3 }) {
                     </div>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => setSelectedTemple(t)}
                   className="w-full py-2.5 bg-saffron hover:bg-[#e85a28] text-slate-900 dark:text-white font-bold text-sm rounded-xl transition-all"
                 >
@@ -416,10 +624,10 @@ function ExploreView({ temples, setActiveTab, user, templesLimit = 3 }) {
       {/* Temple Details Drawer/Modal (Screen 7, 8, 9, 10, 11, 13, 14) */}
       <AnimatePresence>
         {selectedTemple && (
-          <TempleDetailsModal 
-            temple={selectedTemple} 
+          <TempleDetailsModal
+            temple={selectedTemple}
             user={user}
-            onClose={() => setSelectedTemple(null)} 
+            onClose={() => setSelectedTemple(null)}
           />
         )}
       </AnimatePresence>
@@ -474,31 +682,31 @@ function TempleDetailsModal({ temple, user, onClose }) {
           ...formData
         })
       })
-      .then(res => res.json())
-      .then(data => {
-        setIsPaying(false);
-        if (data.success) {
-          setBookedData(data);
-          setStep('ticket');
-        } else {
-          alert('Booking failed. Please try again.');
-        }
-      })
-      .catch(err => {
-        setIsPaying(false);
-        console.error(err);
-      });
+        .then(res => res.json())
+        .then(data => {
+          setIsPaying(false);
+          if (data.success) {
+            setBookedData(data);
+            setStep('ticket');
+          } else {
+            alert('Booking failed. Please try again.');
+          }
+        })
+        .catch(err => {
+          setIsPaying(false);
+          console.error(err);
+        });
     }, 1500); // Simulated payment gateway delay
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4 md:p-6 overflow-y-auto"
     >
-      <motion.div 
+      <motion.div
         initial={{ y: 50, scale: 0.95 }}
         animate={{ y: 0, scale: 1 }}
         exit={{ y: 50, scale: 0.95 }}
@@ -511,23 +719,23 @@ function TempleDetailsModal({ temple, user, onClose }) {
         {/* Modal Left Side: Image, General Info */}
         <div className="w-full md:w-2/5 bg-white dark:bg-slate-950 relative border-r border-slate-850">
           <div className="h-48 md:h-full relative">
-            <img 
-              src={temple.image || "https://images.unsplash.com/photo-1600100397608-f010e42edb7a?auto=format&fit=crop&w=600&q=80"} 
-              alt={temple.name} 
+            <img
+              src={temple.image || "https://images.unsplash.com/photo-1600100397608-f010e42edb7a?auto=format&fit=crop&w=600&q=80"}
+              alt={temple.name}
               className="w-full h-full object-cover opacity-80"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
             <div className="absolute bottom-6 left-6 right-6 text-slate-900 dark:text-white">
               <span className="text-saffron font-bold text-xs uppercase tracking-widest block mb-1">DEITY TEMPLE DETAILS</span>
               <h3 className="text-2xl font-bold mb-2">{temple.name}</h3>
-              <p className="text-slate-700 dark:text-slate-300 text-xs flex items-center gap-1"><MapPin className="h-4.5 w-4.5 text-saffron shrink-0"/> {temple.location}</p>
+              <p className="text-slate-700 dark:text-slate-300 text-xs flex items-center gap-1"><MapPin className="h-4.5 w-4.5 text-saffron shrink-0" /> {temple.location}</p>
             </div>
           </div>
         </div>
 
         {/* Modal Right Side: Dynamic Content Steps */}
         <div className="w-full md:w-3/5 p-8 max-h-[85vh] overflow-y-auto flex flex-col justify-between bg-white dark:bg-slate-900">
-          
+
           {/* STEP 1: TEMPLE DETAILS & CROWD PREDICTION (Screen 7 & 8) */}
           {step === 'details' && (
             <div className="space-y-6">
@@ -554,7 +762,7 @@ function TempleDetailsModal({ temple, user, onClose }) {
                   </h4>
                   <span className="text-xs text-slate-600 dark:text-slate-400">Current Wait: <strong className="text-gold">{temple.waitTime}m</strong></span>
                 </div>
-                
+
                 {/* Recharts Hourly Wait Times Forecast */}
                 <div className="h-36 w-full bg-white dark:bg-slate-950/40 p-2 rounded-xl border border-slate-200 dark:border-slate-800 mb-3">
                   <ResponsiveContainer width="100%" height="100%">
@@ -583,7 +791,7 @@ function TempleDetailsModal({ temple, user, onClose }) {
               </div>
 
               <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex gap-4">
-                <button 
+                <button
                   onClick={() => setStep('booking')}
                   className="flex-1 py-3 bg-saffron hover:bg-[#e85a28] text-slate-900 dark:text-white font-bold text-md rounded-xl transition-all shadow-lg shadow-saffron/20"
                 >
@@ -600,12 +808,12 @@ function TempleDetailsModal({ temple, user, onClose }) {
                 <span className="cursor-pointer hover:underline" onClick={() => setStep('details')}>← Back to Details</span>
               </div>
               <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Darshan Slot Settings</h4>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1.5 font-semibold">Select Date</label>
-                  <input 
-                    type="date" 
+                  <input
+                    type="date"
                     className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-saffron"
                     value={formData.date}
                     min={new Date().toISOString().split('T')[0]}
@@ -615,7 +823,7 @@ function TempleDetailsModal({ temple, user, onClose }) {
                 </div>
                 <div>
                   <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1.5 font-semibold">Time Slot</label>
-                  <select 
+                  <select
                     className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-saffron"
                     value={formData.timeSlot}
                     onChange={e => setFormData({ ...formData, timeSlot: e.target.value })}
@@ -633,9 +841,9 @@ function TempleDetailsModal({ temple, user, onClose }) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1.5 font-semibold">No. of Devotees</label>
-                  <input 
-                    type="number" 
-                    min="1" 
+                  <input
+                    type="number"
+                    min="1"
                     max="10"
                     className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-saffron"
                     value={formData.visitors}
@@ -645,7 +853,7 @@ function TempleDetailsModal({ temple, user, onClose }) {
                 </div>
                 <div>
                   <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1.5 font-semibold">Darshan Category</label>
-                  <select 
+                  <select
                     className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-saffron"
                     value={formData.specialDarshan}
                     onChange={e => setFormData({ ...formData, specialDarshan: e.target.value })}
@@ -662,11 +870,11 @@ function TempleDetailsModal({ temple, user, onClose }) {
                 <span className="text-xs font-bold text-gold flex items-center gap-1.5 mb-1">
                   <HeartHandshake className="h-4 w-4" /> Priority Accessibility Support
                 </span>
-                
+
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:text-white">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       className="rounded accent-saffron bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
                       checked={formData.wheelchair}
                       onChange={e => setFormData({ ...formData, wheelchair: e.target.checked })}
@@ -674,8 +882,8 @@ function TempleDetailsModal({ temple, user, onClose }) {
                     Need Wheelchair
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:text-white">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       className="rounded accent-saffron bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
                       checked={formData.volunteer}
                       onChange={e => setFormData({ ...formData, volunteer: e.target.checked })}
@@ -683,8 +891,8 @@ function TempleDetailsModal({ temple, user, onClose }) {
                     Volunteer Escort
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:text-white col-span-2">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       className="rounded accent-saffron bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
                       checked={formData.medical}
                       onChange={e => setFormData({ ...formData, medical: e.target.checked })}
@@ -702,7 +910,7 @@ function TempleDetailsModal({ temple, user, onClose }) {
                 </div>
               </div>
 
-              <button 
+              <button
                 type="submit"
                 className="w-full py-3.5 bg-saffron hover:bg-[#e85a28] text-slate-900 dark:text-white font-bold text-md rounded-xl transition-all shadow-lg"
               >
@@ -736,22 +944,22 @@ function TempleDetailsModal({ temple, user, onClose }) {
 
               {/* Options */}
               <div className="grid grid-cols-3 gap-3 max-w-sm mx-auto mb-6">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setPayMethod('upi')}
                   className={`p-3 border rounded-xl flex flex-col items-center justify-center text-xs font-semibold gap-1 transition-all ${payMethod === 'upi' ? 'border-saffron bg-saffron/10 text-saffron' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white'}`}
                 >
                   <CreditCard className="h-4.5 w-4.5" /> UPI Apps
                 </button>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setPayMethod('card')}
                   className={`p-3 border rounded-xl flex flex-col items-center justify-center text-xs font-semibold gap-1 transition-all ${payMethod === 'card' ? 'border-saffron bg-saffron/10 text-saffron' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white'}`}
                 >
                   <CreditCard className="h-4.5 w-4.5" /> Card Pay
                 </button>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setPayMethod('wallet')}
                   className={`p-3 border rounded-xl flex flex-col items-center justify-center text-xs font-semibold gap-1 transition-all ${payMethod === 'wallet' ? 'border-saffron bg-saffron/10 text-saffron' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white'}`}
                 >
@@ -766,13 +974,13 @@ function TempleDetailsModal({ temple, user, onClose }) {
                 </div>
               ) : (
                 <div className="flex gap-4 max-w-sm mx-auto">
-                  <button 
+                  <button
                     onClick={() => setStep('booking')}
                     className="flex-1 py-2.5 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-white dark:bg-slate-800 rounded-xl font-bold text-sm"
                   >
                     Go Back
                   </button>
-                  <button 
+                  <button
                     onClick={handlePayment}
                     className="flex-1 py-2.5 bg-saffron hover:bg-[#e85a28] text-slate-900 dark:text-white rounded-xl font-extrabold text-sm shadow-md"
                   >
@@ -824,13 +1032,13 @@ function TempleDetailsModal({ temple, user, onClose }) {
                   "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन"
                 </p>
                 <p className="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
-                  (Karmanye vadhikaraste Ma Phaleshu Kadachana)<br/>
+                  (Karmanye vadhikaraste Ma Phaleshu Kadachana)<br />
                   <strong>Meaning:</strong> You have the right to perform your prescribed duty, but you are not entitled to the fruits of action.
                 </p>
               </div>
 
               <div className="flex gap-4 max-w-xs mx-auto pt-2 mt-4">
-                <button 
+                <button
                   onClick={() => {
                     alert("Ticket downloaded to PDF!");
                   }}
@@ -838,7 +1046,7 @@ function TempleDetailsModal({ temple, user, onClose }) {
                 >
                   Download Pass
                 </button>
-                <button 
+                <button
                   onClick={onClose}
                   className="flex-1 py-2.5 bg-saffron hover:bg-[#e85a28] text-slate-900 dark:text-white rounded-xl text-xs font-bold transition-all"
                 >
@@ -876,15 +1084,15 @@ function PlannerView({ temples }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       })
-      .then(res => res.json())
-      .then(data => {
-        setPlanResult(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        setLoading(false);
-        console.error(err);
-      });
+        .then(res => res.json())
+        .then(data => {
+          setPlanResult(data);
+          setLoading(false);
+        })
+        .catch(err => {
+          setLoading(false);
+          console.error(err);
+        });
     }, 1200);
   };
 
@@ -902,8 +1110,8 @@ function PlannerView({ temples }) {
           <form onSubmit={handleGenerate} className="space-y-4">
             <div>
               <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1.5 font-semibold">Starting City</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-saffron"
                 value={formData.startingCity}
                 onChange={e => setFormData({ ...formData, startingCity: e.target.value })}
@@ -913,7 +1121,7 @@ function PlannerView({ temples }) {
 
             <div>
               <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1.5 font-semibold">Primary Target Shrine</label>
-              <select 
+              <select
                 className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-saffron"
                 value={formData.templeId}
                 onChange={e => setFormData({ ...formData, templeId: e.target.value })}
@@ -925,9 +1133,9 @@ function PlannerView({ temples }) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1.5 font-semibold">Days Available</label>
-                <input 
-                  type="number" 
-                  min="1" 
+                <input
+                  type="number"
+                  min="1"
                   max="14"
                   className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-saffron"
                   value={formData.days}
@@ -937,7 +1145,7 @@ function PlannerView({ temples }) {
               </div>
               <div>
                 <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1.5 font-semibold">Budget Scale</label>
-                <select 
+                <select
                   className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-saffron"
                   value={formData.budget}
                   onChange={e => setFormData({ ...formData, budget: e.target.value })}
@@ -949,8 +1157,8 @@ function PlannerView({ temples }) {
               </div>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={loading}
               className="w-full py-3.5 bg-saffron hover:bg-[#e85a28] disabled:bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-sm rounded-xl transition-all shadow-lg mt-4 flex items-center justify-center gap-2"
             >
@@ -1060,7 +1268,7 @@ function HotelsView() {
       {/* Filter Tabs */}
       <div className="flex gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
         {['All', 'Hotel', 'Dharamshala', 'Temple Guest House', 'Lodge'].map(tab => (
-          <button 
+          <button
             key={tab}
             onClick={() => setTypeFilter(tab)}
             className={`px-4 py-2 text-xs font-bold rounded-full transition-all border ${typeFilter === tab ? 'bg-saffron/10 border-saffron text-saffron' : 'border-slate-850 hover:bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white'}`}
@@ -1084,7 +1292,7 @@ function HotelsView() {
                 <span className="text-xs bg-gold/10 text-gold font-bold px-2 py-0.5 rounded">⭐ {h.rating}</span>
                 <span className="text-[11px] text-slate-500">Guest Score</span>
               </div>
-              
+
               <div className="flex flex-wrap gap-1.5 mb-6">
                 {h.amenities?.map(a => (
                   <span key={a} className="text-[10px] text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-950/40 px-2.5 py-1 rounded-md">{a}</span>
@@ -1097,7 +1305,7 @@ function HotelsView() {
                 <span className="text-[9px] text-slate-500 block">PRICE/NIGHT</span>
                 <span className="text-lg font-bold text-slate-900 dark:text-white">₹{h.price}</span>
               </div>
-              <button 
+              <button
                 onClick={() => setBookedHotel(h)}
                 className="bg-saffron hover:bg-[#e85a28] px-5 py-2 rounded-xl text-xs font-bold text-slate-900 dark:text-white transition-all shadow-md"
               >
@@ -1111,13 +1319,13 @@ function HotelsView() {
       {/* Book Success Modal */}
       <AnimatePresence>
         {bookedHotel && (
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6"
           >
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
@@ -1126,9 +1334,9 @@ function HotelsView() {
               <CheckCircle className="h-12 w-12 text-emerald-400 mx-auto mb-3" />
               <h4 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">Accommodation Secured</h4>
               <p className="text-xs text-slate-600 dark:text-slate-400 mb-6">Your room at <strong>{bookedHotel.name}</strong> is reserved successfully. Payment is due at the check-in desk.</p>
-              
-              <button 
-                type="button" 
+
+              <button
+                type="button"
                 onClick={() => setBookedHotel(null)}
                 className="w-full py-2.5 bg-saffron text-slate-900 dark:text-white font-bold rounded-xl hover:bg-[#e85a28] transition-all text-xs"
               >
@@ -1189,15 +1397,15 @@ function BookingsView() {
         timeSlot: rescheduleSlot
       })
     })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        setRescheduleData(null);
-        fetchBookings();
-      } else {
-        alert('Rescheduling failed.');
-      }
-    });
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setRescheduleData(null);
+          fetchBookings();
+        } else {
+          alert('Rescheduling failed.');
+        }
+      });
   };
 
   const filteredBookings = bookingsList.filter(b => b.status === activeSubTab);
@@ -1212,7 +1420,7 @@ function BookingsView() {
       {/* Sub Tabs */}
       <div className="flex gap-4 border-b border-slate-200 dark:border-slate-800 pb-3">
         {['Upcoming', 'Completed', 'Cancelled'].map(t => (
-          <button 
+          <button
             key={t}
             onClick={() => setActiveSubTab(t)}
             className={`pb-2 border-b-2 font-bold text-sm transition-all ${activeSubTab === t ? 'border-saffron text-saffron' : 'border-transparent text-slate-500 hover:text-slate-900 dark:text-white'}`}
@@ -1227,10 +1435,9 @@ function BookingsView() {
         {filteredBookings.map(b => (
           <div key={b.bookingId} className="bg-white dark:bg-slate-900 border border-slate-850 p-6 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
             {/* Status vertical bar */}
-            <div className={`absolute left-0 top-0 bottom-0 w-2 ${
-              b.status === 'Upcoming' ? 'bg-saffron' :
-              b.status === 'Completed' ? 'bg-emerald-500' : 'bg-red-500'
-            }`} />
+            <div className={`absolute left-0 top-0 bottom-0 w-2 ${b.status === 'Upcoming' ? 'bg-saffron' :
+                b.status === 'Completed' ? 'bg-emerald-500' : 'bg-red-500'
+              }`} />
 
             <div className="pl-2 space-y-2">
               <div className="flex items-center gap-3">
@@ -1247,7 +1454,7 @@ function BookingsView() {
                 <span>👥 visitors: <strong>{b.visitors} Person(s)</strong></span>
                 <span>🎫 Category: <strong>{b.specialDarshan}</strong></span>
               </p>
-              
+
               {(b.wheelchair || b.volunteer || b.medical) && (
                 <div className="text-[10px] text-gold font-bold flex gap-3 pt-1">
                   {b.wheelchair && <span>♿ Wheelchair Required</span>}
@@ -1260,7 +1467,7 @@ function BookingsView() {
             <div className="flex gap-3 shrink-0 w-full md:w-auto">
               {b.status === 'Upcoming' && (
                 <>
-                  <button 
+                  <button
                     onClick={() => {
                       setRescheduleData(b);
                       setRescheduleDate(b.date);
@@ -1270,13 +1477,13 @@ function BookingsView() {
                   >
                     Reschedule
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleCancelBooking(b.bookingId)}
                     className="flex-1 md:flex-initial bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 px-4 py-2 text-xs font-bold rounded-lg transition-all"
                   >
                     Cancel Slot
                   </button>
-                  <button 
+                  <button
                     onClick={() => setSelectedTicket(b)}
                     className="flex-1 md:flex-initial bg-saffron hover:bg-[#e85a28] px-4 py-2 text-slate-900 dark:text-white text-xs font-bold rounded-lg transition-all shadow-md"
                   >
@@ -1301,13 +1508,13 @@ function BookingsView() {
       {/* QR Ticket View Modal */}
       <AnimatePresence>
         {selectedTicket && (
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6"
           >
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
@@ -1316,9 +1523,9 @@ function BookingsView() {
               <button onClick={() => setSelectedTicket(null)} className="absolute top-4 right-4 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white">
                 <X className="h-5 w-5" />
               </button>
-              
+
               <h4 className="text-xl font-bold mb-4">Gate Pass QR Ticket</h4>
-              
+
               <div className="bg-white text-slate-950 p-6 rounded-2xl inline-block shadow-lg mb-4">
                 <QrCode className="h-28 w-28 mx-auto text-slate-900 mb-2" />
                 <span className="font-mono font-bold text-xs tracking-wider text-slate-700 block">{selectedTicket.bookingId}</span>
@@ -1348,8 +1555,8 @@ function BookingsView() {
                 </div>
               </div>
 
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => {
                   alert("PDF Download trigger");
                   setSelectedTicket(null);
@@ -1366,13 +1573,13 @@ function BookingsView() {
       {/* Reschedule Modal */}
       <AnimatePresence>
         {rescheduleData && (
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6"
           >
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
@@ -1381,14 +1588,14 @@ function BookingsView() {
               <button onClick={() => setRescheduleData(null)} className="absolute top-4 right-4 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white">
                 <X className="h-5 w-5" />
               </button>
-              
+
               <h4 className="text-xl font-bold mb-4">Reschedule Darshan</h4>
-              
+
               <form onSubmit={handleRescheduleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1 font-semibold">New Date</label>
-                  <input 
-                    type="date" 
+                  <input
+                    type="date"
                     className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-saffron"
                     value={rescheduleDate}
                     min={new Date().toISOString().split('T')[0]}
@@ -1398,7 +1605,7 @@ function BookingsView() {
                 </div>
                 <div>
                   <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1 font-semibold">New Slot</label>
-                  <select 
+                  <select
                     className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-saffron"
                     value={rescheduleSlot}
                     onChange={e => setRescheduleSlot(e.target.value)}
@@ -1411,14 +1618,14 @@ function BookingsView() {
                 </div>
 
                 <div className="flex gap-4 pt-2">
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setRescheduleData(null)}
                     className="flex-1 py-2.5 bg-white dark:bg-slate-800 border border-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs"
                   >
                     Cancel
                   </button>
-                  <button 
+                  <button
                     type="submit"
                     className="flex-1 py-2.5 bg-saffron text-slate-900 dark:text-white font-bold rounded-xl hover:bg-[#e85a28] text-xs shadow-md"
                   >
@@ -1512,7 +1719,7 @@ function ProfileView({ user, setUser }) {
           <div className="bg-white dark:bg-slate-900 border border-slate-850 p-6 rounded-3xl">
             <h4 className="text-base font-bold text-slate-900 dark:text-white mb-3">Family Members Registry</h4>
             <p className="text-[11px] text-slate-500 mb-4">Add family members to quickly book group Darshan passes.</p>
-            
+
             <ul className="space-y-2 mb-4 text-xs">
               {user.family.map(f => (
                 <li key={f} className="p-2 bg-white dark:bg-slate-950/40 rounded-lg text-slate-700 dark:text-slate-300 border border-slate-850 flex justify-between items-center">
@@ -1523,9 +1730,9 @@ function ProfileView({ user, setUser }) {
             </ul>
 
             <form onSubmit={handleAddFamily} className="flex gap-2">
-              <input 
-                type="text" 
-                placeholder="Name & Relationship (e.g. Daughter)" 
+              <input
+                type="text"
+                placeholder="Name & Relationship (e.g. Daughter)"
                 className="flex-1 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none"
                 value={familyInput}
                 onChange={e => setFamilyInput(e.target.value)}
@@ -1538,11 +1745,11 @@ function ProfileView({ user, setUser }) {
           <div className="bg-white dark:bg-slate-900 border border-slate-850 p-6 rounded-3xl">
             <h4 className="text-base font-bold text-slate-900 dark:text-white mb-3">Accessibility Presets</h4>
             <p className="text-[11px] text-slate-500 mb-4">Set default assistant requirements which apply during bookings.</p>
-            
+
             <div className="space-y-3 text-xs">
               <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:text-white">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   className="rounded accent-saffron bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800"
                   checked={user.accessibilityPreset.wheelchair}
                   onChange={e => setUser({
@@ -1553,8 +1760,8 @@ function ProfileView({ user, setUser }) {
                 Default Wheelchair Assistance
               </label>
               <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:text-white">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   className="rounded accent-saffron bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800"
                   checked={user.accessibilityPreset.volunteer}
                   onChange={e => setUser({
@@ -1593,11 +1800,10 @@ function AlertsView({ notifications, markRead }) {
       <div className="bg-white dark:bg-slate-900 border border-slate-850 rounded-3xl overflow-hidden divide-y divide-slate-850">
         {notifications.map(n => (
           <div key={n.id} className="p-6 flex items-start gap-4 hover:bg-white dark:bg-slate-850/20 transition-all">
-            <div className={`p-2.5 rounded-xl shrink-0 ${
-              n.type === 'Emergency Broadcast' ? 'bg-red-500/10 text-red-500' :
-              n.type === 'Crowd Alert' ? 'bg-amber-500/10 text-amber-400' :
-              'bg-saffron/10 text-saffron'
-            }`}>
+            <div className={`p-2.5 rounded-xl shrink-0 ${n.type === 'Emergency Broadcast' ? 'bg-red-500/10 text-red-500' :
+                n.type === 'Crowd Alert' ? 'bg-amber-500/10 text-amber-400' :
+                  'bg-saffron/10 text-saffron'
+              }`}>
               <Bell className="h-5 w-5" />
             </div>
             <div className="flex-1 space-y-1">
