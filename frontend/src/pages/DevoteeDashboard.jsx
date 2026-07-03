@@ -14,16 +14,42 @@ export default function DevoteeDashboard() {
   const [temples, setTemples] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [user, setUser] = useState({
-    name: 'Devendra Kumar',
-    email: 'devendra@teerthsethu.in',
-    phone: '+91 9876543210',
-    address: 'Sector 4, Dwarka, New Delhi',
-    aadhaar: '4820-1928-8812',
-    emergencyContact: 'Amit Kumar (+91 9876543211)',
-    family: ['Sita Devi (Wife)', 'Karan Kumar (Son)'],
-    savedTemples: ['1', '3'],
-    accessibilityPreset: { wheelchair: false, volunteer: false }
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        let nameToUse = parsed.fullName || parsed.name || '';
+        if (nameToUse === 'Devendra Kumar' && parsed.email) {
+          nameToUse = parsed.email.split('@')[0].replace(/[^a-zA-Z]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+        if (!nameToUse && parsed.email) {
+          nameToUse = parsed.email.split('@')[0];
+        }
+        return {
+          name: nameToUse || 'Devotee',
+          email: parsed.email || 'devotee@teerthsethu.in',
+          phone: parsed.phoneNumber || parsed.phone || '+91 9876543210',
+          address: parsed.address || 'Sector 4, Dwarka, New Delhi',
+          aadhaar: parsed.aadhaar || '4820-1928-8812',
+          emergencyContact: parsed.emergencyContact || 'Amit Kumar (+91 9876543211)',
+          family: parsed.family || ['Sita Devi (Wife)', 'Karan Kumar (Son)'],
+          savedTemples: parsed.savedTemples || ['1', '3'],
+          accessibilityPreset: parsed.accessibilityPreset || { wheelchair: false, volunteer: false }
+        };
+      } catch(e) {}
+    }
+    return {
+      name: 'User Name',
+      email: 'user@teerthsethu.in',
+      phone: '+91 9876543210',
+      address: 'Sector 4, Dwarka, New Delhi',
+      aadhaar: '4820-1928-8812',
+      emergencyContact: 'Amit Kumar (+91 9876543211)',
+      family: ['Sita Devi (Wife)', 'Karan Kumar (Son)'],
+      savedTemples: ['1', '3'],
+      accessibilityPreset: { wheelchair: false, volunteer: false }
+    };
   });
 
   const navigate = useNavigate();
@@ -79,9 +105,11 @@ export default function DevoteeDashboard() {
         
         {/* Navigation Menu */}
         <nav className="flex flex-col gap-2 flex-1">
-          <SidebarButton active={activeTab === 'explore'} icon={<Compass className="h-5 w-5"/>} text="Shrines & Booking" onClick={() => setActiveTab('explore')} />
-          <SidebarButton active={activeTab === 'planner'} icon={<Map className="h-5 w-5"/>} text="Journey Planner" onClick={() => setActiveTab('planner')} />
-          <SidebarButton active={activeTab === 'hotels'} icon={<Hotel className="h-5 w-5"/>} text="Accommodations" onClick={() => setActiveTab('hotels')} />
+          <SidebarButton active={activeTab === 'explore'} icon={<Compass className="h-5 w-5"/>} text="Temple Booking" onClick={() => setActiveTab('explore')} />
+          <SidebarButton active={activeTab === 'hotels'} icon={<Hotel className="h-5 w-5"/>} text="Accommodation" onClick={() => setActiveTab('hotels')} />
+          <SidebarButton active={activeTab === 'travels'} icon={<Activity className="h-5 w-5"/>} text="Travels" onClick={() => setActiveTab('travels')} />
+          <SidebarButton active={activeTab === 'planner'} icon={<Map className="h-5 w-5"/>} text="AI Journey Planner" onClick={() => setActiveTab('planner')} />
+          <SidebarButton active={activeTab === 'nearby'} icon={<MapPin className="h-5 w-5"/>} text="Nearby Suggestions" onClick={() => setActiveTab('nearby')} />
           <SidebarButton active={activeTab === 'bookings'} icon={<QrCode className="h-5 w-5"/>} text="My Tickets" onClick={() => setActiveTab('bookings')} />
           <SidebarButton active={activeTab === 'profile'} icon={<User className="h-5 w-5"/>} text="My Profile" onClick={() => setActiveTab('profile')} />
           
@@ -118,7 +146,7 @@ export default function DevoteeDashboard() {
             </div>
             <div className="overflow-hidden">
               <p className="text-sm font-semibold truncate text-slate-900 dark:text-white">{user.name}</p>
-              <p className="text-xs text-slate-500 truncate">{user.phone}</p>
+              <p className="text-xs text-slate-500 truncate">{user.email}</p>
             </div>
           </div>
           <button onClick={handleLogout} className="flex items-center gap-3 text-slate-600 dark:text-slate-400 hover:text-red-400 p-3 rounded-xl hover:bg-red-500/5 transition-all text-sm font-medium">
@@ -137,6 +165,20 @@ export default function DevoteeDashboard() {
           {activeTab === 'explore' && <ExploreView temples={temples} setActiveTab={setActiveTab} user={user} />}
           {activeTab === 'planner' && <PlannerView temples={temples} />}
           {activeTab === 'hotels' && <HotelsView />}
+          {activeTab === 'travels' && (
+            <div className="flex flex-col items-center justify-center h-full text-slate-500 py-20">
+              <Activity className="h-16 w-16 mb-4 text-slate-400 opacity-50" />
+              <h2 className="text-2xl font-bold text-slate-700 dark:text-slate-300">Travels</h2>
+              <p className="mt-2 text-slate-500">Book your flights, trains, and cabs here. Coming Soon!</p>
+            </div>
+          )}
+          {activeTab === 'nearby' && (
+            <div className="flex flex-col items-center justify-center h-full text-slate-500 py-20">
+              <MapPin className="h-16 w-16 mb-4 text-slate-400 opacity-50" />
+              <h2 className="text-2xl font-bold text-slate-700 dark:text-slate-300">Nearby Suggestions</h2>
+              <p className="mt-2 text-slate-500">Discover restaurants, shops, and attractions nearby. Coming Soon!</p>
+            </div>
+          )}
           {activeTab === 'bookings' && <BookingsView />}
           {activeTab === 'profile' && <ProfileView user={user} setUser={setUser} />}
           {activeTab === 'alerts' && <AlertsView notifications={notifications} markRead={handleMarkNotificationsRead} />}
@@ -166,9 +208,37 @@ function ExploreView({ temples, setActiveTab, user, templesLimit = 3 }) {
   const [stateFilter, setStateFilter] = useState('All');
   const [crowdFilter, setCrowdFilter] = useState('All');
   const [selectedTemple, setSelectedTemple] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => setUserLocation({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+        err => console.log('Geolocation error:', err)
+      );
+    }
+  }, []);
+
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return (R * c).toFixed(1);
+  };
 
   // States
-  const states = ['All', 'Andhra Pradesh', 'Uttarakhand', 'Uttar Pradesh', 'Jammu & Kashmir', 'Kerala', 'Gujarat', 'Odisha', 'Tamil Nadu'];
+  const states = [
+    'All', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+    'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
+    'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram',
+    'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu',
+    'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+    'Jammu & Kashmir', 'Delhi'
+  ];
 
   const filteredTemples = temples.filter(t => {
     const matchesSearch = t.name.toLowerCase().includes(searchTerm.toLowerCase()) || t.location.toLowerCase().includes(searchTerm.toLowerCase());
@@ -179,6 +249,65 @@ function ExploreView({ temples, setActiveTab, user, templesLimit = 3 }) {
 
   return (
     <div className="space-y-8">
+      {/* Temple Discovery search/filter bar (Screen 6) */}
+      <div className="space-y-6">
+        <div className="flex justify-between items-end border-b border-slate-200 dark:border-slate-800 pb-4">
+          <div>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Shrine Discovery</h3>
+            <p className="text-slate-600 dark:text-slate-400 text-sm mt-0.5">Explore popular shrines, forecast queues, and secure Darshan passes.</p>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white dark:bg-slate-900/30 p-4 rounded-2xl border border-slate-850">
+          <div>
+            <select 
+              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:border-saffron transition-all"
+              value={stateFilter}
+              onChange={e => {
+                setStateFilter(e.target.value);
+                setSearchTerm('');
+              }}
+            >
+              <option value="All">Select State</option>
+              {states.slice(1).map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+
+          <div className="relative col-span-2">
+            <select 
+              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:border-saffron transition-all appearance-none"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+            >
+              <option value="">All Temples</option>
+              {temples
+                .filter(t => stateFilter === 'All' || t.location.includes(stateFilter))
+                .map(t => (
+                  <option key={t._id} value={t.name}>{t.name}</option>
+                ))
+              }
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+          </div>
+
+          <div>
+            <select 
+              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:border-saffron transition-all"
+              value={crowdFilter}
+              onChange={e => setCrowdFilter(e.target.value)}
+            >
+              <option value="All">Filter: Crowd Level</option>
+              <option value="Low">Low Crowds</option>
+              <option value="Moderate">Moderate Crowds</option>
+              <option value="High">High Crowds</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       {/* Greeting (Screen 5) */}
       <div className="flex justify-between items-center bg-white dark:bg-slate-900/40 p-6 rounded-3xl border border-slate-850">
         <div>
@@ -222,52 +351,7 @@ function ExploreView({ temples, setActiveTab, user, templesLimit = 3 }) {
         </div>
       </div>
 
-      {/* Temple Discovery search/filter bar (Screen 6) */}
       <div className="space-y-6">
-        <div className="flex justify-between items-end border-b border-slate-200 dark:border-slate-800 pb-4">
-          <div>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Shrine Discovery</h3>
-            <p className="text-slate-600 dark:text-slate-400 text-sm mt-0.5">Explore popular shrines, forecast queues, and secure Darshan passes.</p>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white dark:bg-slate-900/30 p-4 rounded-2xl border border-slate-850">
-          <div className="relative col-span-2">
-            <Search className="absolute left-3 top-3.5 h-5 w-5 text-slate-500" />
-            <input 
-              type="text" 
-              placeholder="Search temple name, deity, city..." 
-              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-3 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-saffron transition-all"
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <select 
-              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:border-saffron transition-all"
-              value={stateFilter}
-              onChange={e => setStateFilter(e.target.value)}
-            >
-              <option value="All">Filter: All States</option>
-              {states.slice(1).map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-
-          <div>
-            <select 
-              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:border-saffron transition-all"
-              value={crowdFilter}
-              onChange={e => setCrowdFilter(e.target.value)}
-            >
-              <option value="All">Filter: Crowd Level</option>
-              <option value="Low">Low Crowds</option>
-              <option value="Moderate">Moderate Crowds</option>
-              <option value="High">High Crowds</option>
-            </select>
-          </div>
-        </div>
 
         {/* Temple Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -294,7 +378,12 @@ function ExploreView({ temples, setActiveTab, user, templesLimit = 3 }) {
               <div className="p-6 flex-1 flex flex-col justify-between">
                 <div>
                   <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-1.5">{t.name}</h4>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm flex items-center gap-1.5 mb-4"><MapPin className="h-4 w-4 text-saffron"/> {t.location}</p>
+                  <div className="flex flex-col gap-1 mb-4">
+                    <p className="text-slate-600 dark:text-slate-400 text-sm flex items-center gap-1.5"><MapPin className="h-4 w-4 text-saffron"/> {t.location}</p>
+                    {userLocation && t.lat && t.lon && (
+                      <p className="text-slate-500 text-xs flex items-center gap-1.5"><Map className="h-3.5 w-3.5 text-blue-400"/> {calculateDistance(userLocation.lat, userLocation.lon, t.lat, t.lon)} km away (GPS)</p>
+                    )}
+                  </div>
                   
                   <div className="grid grid-cols-2 gap-4 bg-white dark:bg-slate-950/40 p-3 rounded-xl text-xs mb-4">
                     <div>
@@ -729,7 +818,18 @@ function TempleDetailsModal({ temple, user, onClose }) {
                 </div>
               )}
 
-              <div className="flex gap-4 max-w-xs mx-auto pt-2">
+              {/* Bhagavad Gita Shloka */}
+              <div className="bg-saffron/10 border border-saffron/20 p-4 rounded-xl max-w-sm mx-auto text-center mt-4">
+                <p className="text-saffron font-semibold italic text-sm mb-1.5 font-serif">
+                  "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन"
+                </p>
+                <p className="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
+                  (Karmanye vadhikaraste Ma Phaleshu Kadachana)<br/>
+                  <strong>Meaning:</strong> You have the right to perform your prescribed duty, but you are not entitled to the fruits of action.
+                </p>
+              </div>
+
+              <div className="flex gap-4 max-w-xs mx-auto pt-2 mt-4">
                 <button 
                   onClick={() => {
                     alert("Ticket downloaded to PDF!");

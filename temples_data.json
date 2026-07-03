@@ -1,0 +1,158 @@
+[
+  {
+    "name": "Tirupati Venkateswara",
+    "query": "Venkateswara Temple, Tirumala",
+    "location": "Andhra Pradesh",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Tirumala_090615.jpg/960px-Tirumala_090615.jpg"
+  },
+  {
+    "name": "Kedarnath Temple",
+    "query": "Kedarnath Temple",
+    "location": "Uttarakhand",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Kedarnath_Temple_in_Rainy_season.jpg/960px-Kedarnath_Temple_in_Rainy_season.jpg"
+  },
+  {
+    "name": "Kashi Vishwanath",
+    "query": "Kashi Vishwanath Temple",
+    "location": "Uttar Pradesh",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Kashi_Vishwanath.jpg"
+  },
+  {
+    "name": "Vaishno Devi",
+    "query": "Vaishno Devi",
+    "location": "Jammu & Kashmir",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png"
+  },
+  {
+    "name": "Sabarimala Temple",
+    "query": "Sabarimala",
+    "location": "Kerala",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png"
+  },
+  {
+    "name": "Somnath Temple",
+    "query": "Somnath temple",
+    "location": "Gujarat",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png"
+  },
+  {
+    "name": "Dwarkadhish Temple",
+    "query": "Dwarkadhish Temple",
+    "location": "Gujarat",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Dwarakadheesh_Temple%2C_2014.jpg/960px-Dwarakadheesh_Temple%2C_2014.jpg"
+  },
+  {
+    "name": "Jagannath Puri",
+    "query": "Jagannath Temple, Puri",
+    "location": "Odisha",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Shri_Jagannath_temple.jpg/960px-Shri_Jagannath_temple.jpg"
+  },
+  {
+    "name": "Meenakshi Temple",
+    "query": "Meenakshi Temple",
+    "location": "Tamil Nadu",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/An_aerial_view_of_Madurai_city_from_atop_of_Meenakshi_Amman_temple.jpg/960px-An_aerial_view_of_Madurai_city_from_atop_of_Meenakshi_Amman_temple.jpg"
+  },
+  {
+    "name": "Badrinath Temple",
+    "query": "Badrinath Temple",
+    "location": "Uttarakhand",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Badrinath_Temple_%2C_Uttarakhand.jpg/960px-Badrinath_Temple_%2C_Uttarakhand.jpg"
+  },
+  {
+    "name": "Ram Mandir",
+    "query": "Ram Mandir",
+    "location": "Uttar Pradesh",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Shri_Ram_Janambhoomi_Mandir%2C_Ayodhya_Dham.jpg/960px-Shri_Ram_Janambhoomi_Mandir%2C_Ayodhya_Dham.jpg"
+  },
+  {
+    "name": "Padmanabhaswamy Temple",
+    "query": "Padmanabhaswamy Temple",
+    "location": "Kerala",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Sree_Padmanabhaswamy_temple_01.jpg/960px-Sree_Padmanabhaswamy_temple_01.jpg"
+  },
+  {
+    "name": "Konark Sun Temple",
+    "query": "Konark Sun Temple",
+    "location": "Odisha",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Konarka_Temple.jpg/960px-Konarka_Temple.jpg"
+  },
+  {
+    "name": "Brihadeeswarar Temple",
+    "query": "Brihadisvara Temple, Thanjavur",
+    "location": "Tamil Nadu",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png"
+  },
+  {
+    "name": "Siddhivinayak Temple",
+    "query": "Siddhivinayak Temple, Mumbai",
+    "location": "Maharashtra",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Shree_Siddhivinayak_Temple_Mumbai.jpg/960px-Shree_Siddhivinayak_Temple_Mumbai.jpg"
+  },
+  {
+    "name": "Mahakaleshwar Temple",
+    "query": "Mahakaleshwar Jyotirlinga",
+    "location": "Madhya Pradesh",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Mahakaleshwar_Temple%2C_Ujjain.jpg/960px-Mahakaleshwar_Temple%2C_Ujjain.jpg"
+  },
+  {
+    "name": "Kamakhya Temple",
+    "query": "Kamakhya Temple",
+    "location": "Assam",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Kamakhya_Temple_-_DEV_8829.jpg/960px-Kamakhya_Temple_-_DEV_8829.jpg"
+  },
+  {
+    "name": "Golden Temple",
+    "query": "Golden Temple",
+    "location": "Punjab",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/The_Golden_Temple_of_Amrithsar_7.jpg/960px-The_Golden_Temple_of_Amrithsar_7.jpg"
+  },
+  {
+    "name": "Brahma Temple",
+    "query": "Brahma Temple, Pushkar",
+    "location": "Rajasthan",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/3/39/Brahma_Temple%2C_Pushkar.jpg"
+  },
+  {
+    "name": "Akshardham",
+    "query": "Swaminarayan Akshardham (New Delhi)",
+    "location": "Delhi",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png"
+  },
+  {
+    "name": "Virupaksha Temple",
+    "query": "Virupaksha Temple",
+    "location": "Karnataka",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png"
+  },
+  {
+    "name": "Lingaraj Temple",
+    "query": "Lingaraja Temple",
+    "location": "Odisha",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Lingaraj_Temple_%2C_Bhubaneswar.jpg/960px-Lingaraj_Temple_%2C_Bhubaneswar.jpg"
+  },
+  {
+    "name": "Gomateshwara",
+    "query": "Gommateshwara statue",
+    "location": "Karnataka",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Gommateshwara%2C_Shravanabelagola.jpg/960px-Gommateshwara%2C_Shravanabelagola.jpg"
+  },
+  {
+    "name": "Ramanathaswamy Temple",
+    "query": "Ramanathaswamy Temple",
+    "location": "Tamil Nadu",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Ramanathaswamy_temple7.JPG/960px-Ramanathaswamy_temple7.JPG"
+  },
+  {
+    "name": "Karni Mata Temple",
+    "query": "Karni Mata Temple",
+    "location": "Rajasthan",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/20191212_%C5%9Awi%C4%85tynia_Karni_Maty_w_De%C5%9Bnok_1031_8078_DxO.jpg/960px-20191212_%C5%9Awi%C4%85tynia_Karni_Maty_w_De%C5%9Bnok_1031_8078_DxO.jpg"
+  },
+  {
+    "name": "Trimbakeshwar",
+    "query": "Trimbakeshwar Shiva Temple",
+    "location": "Maharashtra",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png"
+  }
+]
