@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   MapPin, Clock, Users, QrCode, LogOut, Bell, Compass, Calendar,
   Search, ShieldAlert, HeartHandshake, Hotel, Map, User, CheckCircle,
-  CreditCard, ChevronRight, X, Sparkles, Filter, Info, PhoneCall, Star, Phone, Activity, Sun, Moon
+  CreditCard, ChevronRight, X, Sparkles, Filter, Info, PhoneCall, Star, Phone, Activity, Sun, Moon, Plus, Minus,
+  ShieldCheck, Fingerprint, Smartphone
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from 'recharts';
@@ -164,7 +165,7 @@ export default function DevoteeDashboard() {
         <div className="flex-1 z-10 max-w-6xl mx-auto w-full">
           {activeTab === 'explore' && <ExploreView temples={temples} setActiveTab={setActiveTab} user={user} />}
           {activeTab === 'analysis' && <AnalysisView temples={temples} user={user} setActiveTab={setActiveTab} />}
-          {activeTab === 'planner' && <PlannerView temples={temples} />}
+          {activeTab === 'planner' && <PlannerView temples={temples} onClose={() => setActiveTab('explore')} />}
           {activeTab === 'hotels' && <HotelsView />}
           {activeTab === 'travels' && (
             <div className="flex flex-col items-center justify-center h-full text-slate-500 py-20">
@@ -333,27 +334,34 @@ function AnalysisView({ temples, user, setActiveTab }) {
               </div>
 
               {/* Recharts Hourly Wait Times Forecast */}
-              <div className="h-40 w-full bg-slate-50 dark:bg-slate-950/40 pt-4 pb-2 px-1 rounded-2xl border border-slate-200 dark:border-slate-800 mb-4 flex items-end">
+              <div className="h-56 w-full bg-slate-50 dark:bg-slate-950/60 pt-6 pb-2 pr-2 pl-0 rounded-3xl border border-slate-200 dark:border-slate-800 mb-4 relative overflow-hidden group shadow-inner">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={hourlyPredictionData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                  <BarChart data={hourlyPredictionData} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--grid-color, #334155)" strokeOpacity={0.4} className="dark:[--grid-color:#334155] [--grid-color:#E2E8F0]" />
                     <XAxis 
                       dataKey="time" 
                       stroke="#94A3B8" 
-                      fontSize={10} 
+                      fontSize={11} 
                       axisLine={false} 
                       tickLine={false}
-                      tick={{fill: '#64748B'}}
-                      interval={2} 
+                      tick={{fill: '#94A3B8', dy: 10}}
+                      minTickGap={15}
+                    />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{fill: '#94A3B8', fontSize: 10, dx: -5}} 
                     />
                     <Tooltip 
-                      cursor={{fill: 'rgba(148, 163, 184, 0.1)'}} 
-                      contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '8px', fontSize: 12, color: '#fff', border: '1px solid #334155' }} 
+                      cursor={{fill: 'rgba(255, 107, 53, 0.1)'}} 
+                      contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(10px)', borderRadius: '12px', fontSize: 13, color: '#fff', border: '1px solid rgba(255,107,53,0.3)', boxShadow: '0 10px 25px -5px rgba(255, 107, 53, 0.2)' }} 
+                      itemStyle={{ color: '#F8FAFC' }}
                       formatter={(value) => [`${value} mins`, 'Est. Wait Time']}
-                      labelStyle={{color: '#94A3B8', marginBottom: '4px'}}
+                      labelStyle={{color: '#E2E8F0', marginBottom: '4px', fontWeight: 'bold'}}
                     />
-                    <Bar dataKey="wait" radius={[4, 4, 0, 0]} maxBarSize={40}>
+                    <Bar dataKey="wait" radius={[6, 6, 0, 0]} maxBarSize={30} animationDuration={1500}>
                       {hourlyPredictionData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.isCurrent ? '#FF6B35' : 'var(--bar-color, #475569)'} className="dark:[--bar-color:#334155] [--bar-color:#CBD5E1]" />
+                        <Cell key={`cell-${index}`} fill={entry.isCurrent ? '#FF6B35' : 'var(--bar-color)'} className="dark:[--bar-color:#9A3412] [--bar-color:#FDBA74] transition-all duration-300 hover:opacity-80" />
                       ))}
                     </Bar>
                   </BarChart>
@@ -403,6 +411,7 @@ function ExploreView({ temples, setActiveTab, user, templesLimit = 3 }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [stateFilter, setStateFilter] = useState('All');
   const [crowdFilter, setCrowdFilter] = useState('All');
+  const [quickFilter, setQuickFilter] = useState('');
   const [selectedTemple, setSelectedTemple] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
 
@@ -440,122 +449,182 @@ function ExploreView({ temples, setActiveTab, user, templesLimit = 3 }) {
     const matchesSearch = t.name.toLowerCase().includes(searchTerm.toLowerCase()) || t.location.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesState = stateFilter === 'All' || t.location.includes(stateFilter);
     const matchesCrowd = crowdFilter === 'All' || t.crowdLevel === crowdFilter;
-    return matchesSearch && matchesState && matchesCrowd;
+    
+    let matchesQuick = true;
+    if (quickFilter === 'Popular') matchesQuick = (t.rating >= 4.8) || (t.waitTime >= 30);
+    else if (quickFilter === 'Low Crowd') matchesQuick = t.crowdLevel === 'Low';
+    else if (quickFilter === 'Senior Friendly' || quickFilter === 'Wheelchair Accessible') matchesQuick = t.facilities ? t.facilities.some(f => f.toLowerCase().includes('wheelchair') || f.toLowerCase().includes('senior')) : true;
+    else if (quickFilter === 'Festival Today') matchesQuick = t.name.includes('Tirupati') || t.name.includes('Kashi');
+
+    return matchesSearch && matchesState && matchesCrowd && matchesQuick;
   });
 
   return (
     <div className="space-y-8">
       {/* Temple Discovery search/filter bar (Screen 6) */}
       <div className="space-y-6">
-        <div className="flex justify-between items-end border-b border-slate-200 dark:border-slate-800 pb-4">
+        <div className="flex justify-between items-end border-b border-slate-200 dark:border-slate-800 pb-2">
           <div>
-            <h3 className="text-4xl text-saffron drop-shadow-md flex items-center gap-3" style={{ fontFamily: "'Yatra One', cursive", letterSpacing: "1px" }}>
-              Swagatam <span className="text-4xl drop-shadow-[0_0_12px_rgba(251,146,60,0.5)] animate-pulse">🪷</span>
+            <h3 className="text-3xl text-saffron drop-shadow-md flex items-center gap-2" style={{ fontFamily: "'Yatra One', cursive", letterSpacing: "1px" }}>
+              Swagatam <span className="text-3xl drop-shadow-[0_0_12px_rgba(251,146,60,0.5)] animate-pulse">🪷</span>
             </h3>
-            <p className="text-slate-800 dark:text-slate-200 text-base mt-1 italic" style={{ fontFamily: "'Cinzel', serif" }}>Where hearts meet the Divine.</p>
+            <p className="text-slate-800 dark:text-slate-200 text-sm mt-0.5 italic" style={{ fontFamily: "'Cinzel', serif" }}>Where hearts meet the Divine.</p>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white dark:bg-slate-900/30 p-4 rounded-2xl border border-slate-850">
-          <div>
-            <select
-              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:border-saffron transition-all appearance-none"
-              value={stateFilter}
-              onChange={e => {
-                setStateFilter(e.target.value);
-                setSearchTerm('');
-              }}
-            >
-              <option value="All">Select State</option>
-              {states.slice(1).map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
+        <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white dark:bg-slate-900/30 p-4 rounded-2xl border border-slate-850">
+            <div>
+              <select
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:border-saffron transition-all appearance-none"
+                value={stateFilter}
+                onChange={e => {
+                  setStateFilter(e.target.value);
+                  setSearchTerm('');
+                }}
+              >
+                <option value="All">Select State</option>
+                {states.slice(1).map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+
+            <div className="relative col-span-2 flex gap-3">
+              <div className="relative flex-1">
+                <input 
+                  type="text"
+                  placeholder={stateFilter !== 'All' ? `Search for a temple in ${stateFilter}...` : "Search for any temple..."}
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-3 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:border-saffron transition-all"
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setShowSuggestions(false)}
+                />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+
+                {/* Suggestions Dropdown */}
+                {showSuggestions && searchTerm.length > 0 && filteredTemples.length > 0 && (
+                  <div className="absolute z-50 w-full mt-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl max-h-60 overflow-y-auto overflow-x-hidden text-left">
+                    {filteredTemples.map(t => (
+                      <div 
+                        key={t._id} 
+                        className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-3 border-b border-slate-100 dark:border-slate-700 last:border-0 transition-colors"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setSearchTerm(t.name);
+                          setShowSuggestions(false);
+                        }}
+                      >
+                        <img src={t.image || "https://images.unsplash.com/photo-1600100397608-f010e42edb7a?auto=format&fit=crop&w=100&q=80"} alt={t.name} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{t.name}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{t.location}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button className="bg-saffron text-white px-6 py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors shadow-sm whitespace-nowrap">
+                Search
+              </button>
+            </div>
           </div>
 
-          <div className="relative col-span-2 flex gap-3">
-            <div className="relative flex-1">
-              <input 
-                type="text"
-                placeholder={stateFilter !== 'All' ? `Search for a temple in ${stateFilter}...` : "Search for any temple..."}
-                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-3 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:border-saffron transition-all"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setShowSuggestions(false)}
-              />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-              </div>
-
-              {/* Suggestions Dropdown */}
-              {showSuggestions && searchTerm.length > 0 && filteredTemples.length > 0 && (
-                <div className="absolute z-50 w-full mt-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl max-h-60 overflow-y-auto overflow-x-hidden text-left">
-                  {filteredTemples.map(t => (
-                    <div 
-                      key={t._id} 
-                      className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-3 border-b border-slate-100 dark:border-slate-700 last:border-0 transition-colors"
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        setSearchTerm(t.name);
-                        setShowSuggestions(false);
-                      }}
-                    >
-                      <img src={t.image || "https://images.unsplash.com/photo-1600100397608-f010e42edb7a?auto=format&fit=crop&w=100&q=80"} alt={t.name} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{t.name}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{t.location}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <button className="bg-saffron text-white px-6 py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors shadow-sm whitespace-nowrap">
-              Search
-            </button>
+          {/* Quick Filters */}
+          <div className="flex flex-wrap items-center gap-3 px-2 mt-2">
+            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+              Filters
+            </span>
+            {['Popular', 'Low Crowd', 'Senior Friendly', 'Wheelchair Accessible', 'Festival Today'].map(filter => (
+              <button
+                key={filter}
+                onClick={() => setQuickFilter(quickFilter === filter ? '' : filter)}
+                className={`px-4 py-2 border rounded-full text-xs font-bold transition-all ${
+                  quickFilter === filter 
+                    ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white border-transparent shadow-lg shadow-orange-500/40 scale-105' 
+                    : 'bg-orange-50 dark:bg-orange-900/10 border-orange-200 dark:border-orange-500/20 hover:border-orange-400 dark:hover:border-orange-500/50 hover:bg-orange-100 dark:hover:bg-orange-900/30 text-orange-700 dark:text-orange-400 shadow-sm'
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
+            {quickFilter && (
+              <button
+                onClick={() => setQuickFilter('')}
+                className="text-xs font-bold text-slate-500 hover:text-red-500 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full transition-colors"
+              >
+                Clear
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       {/* Greeting (Screen 5) */}
-      <div className="flex justify-between items-center bg-white dark:bg-slate-900/40 p-6 rounded-3xl border border-slate-850">
+      <div className="flex justify-between items-center bg-white dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-850">
         <div>
-          <h2 className="text-3xl font-bold flex items-center gap-2">
+          <h2 className="text-2xl font-bold flex items-center gap-2">
             Namaste,{" "}{user.name && user.name.trim() !== '' ? user.name.trim() : 'Devotee'}! <span className="animate-wiggle">🙏</span>
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">Ready for your spiritual journey? Plan slots and track crowding live.</p>
+          <p className="text-slate-600 dark:text-slate-400 text-xs mt-0.5">Ready for your spiritual journey? Plan slots and track crowding live.</p>
         </div>
-        <div className="flex gap-3">
-          <button onClick={() => setActiveTab('analysis')} className="bg-saffron/15 text-saffron border border-saffron/30 hover:bg-saffron/20 px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2">
+        <div className="flex gap-2">
+          <button onClick={() => setActiveTab('analysis')} className="bg-saffron/15 text-saffron border border-saffron/30 hover:bg-saffron/20 px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5">
             <Activity className="h-4 w-4" /> Quick Review
           </button>
-          <button onClick={() => setActiveTab('planner')} className="bg-gold/15 text-gold border border-gold/30 hover:bg-gold/20 px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2">
+          <button onClick={() => setActiveTab('planner')} className="bg-gold/15 text-gold border border-gold/30 hover:bg-gold/20 px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5">
             <Map className="h-4 w-4" /> Plan Multi-Route
           </button>
         </div>
       </div>
 
       {/* Mini Dashboard Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl flex items-center gap-4">
-          <div className="p-3 bg-saffron/10 text-saffron rounded-xl"><Users className="h-6 w-6" /></div>
-          <div>
-            <h4 className="text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Crowd Status Today</h4>
-            <p className="text-lg font-bold text-slate-900 dark:text-white">Moderate Surge</p>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        {/* Card 1: Total Temples */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
+          <div className="p-2 bg-saffron/10 text-saffron rounded-lg flex-shrink-0"><Compass className="h-4 w-4" /></div>
+          <div className="min-w-0">
+            <h4 className="text-slate-500 dark:text-slate-400 text-[9px] font-bold uppercase tracking-wider mb-0.5 truncate">Total Temples</h4>
+            <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight truncate">10,000+</p>
           </div>
         </div>
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl flex items-center gap-4">
-          <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl"><Clock className="h-6 w-6" /></div>
-          <div>
-            <h4 className="text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Avg Waiting Hours Saved</h4>
-            <p className="text-lg font-bold text-slate-900 dark:text-white">1.5 Hrs / Slot</p>
+        
+        {/* Card 2: Active Bookings */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
+          <div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg flex-shrink-0"><QrCode className="h-4 w-4" /></div>
+          <div className="min-w-0">
+            <h4 className="text-slate-500 dark:text-slate-400 text-[9px] font-bold uppercase tracking-wider mb-0.5 truncate">Active Bookings</h4>
+            <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight truncate">2 Upcoming</p>
           </div>
         </div>
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl flex items-center gap-4">
-          <div className="p-3 bg-blue-500/10 text-blue-400 rounded-xl"><Calendar className="h-6 w-6" /></div>
-          <div>
-            <h4 className="text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Upcoming Festival Alert</h4>
-            <p className="text-lg font-bold text-slate-900 dark:text-white">Brahmotsavam (Tirupati)</p>
+
+        {/* Card 3: Saved Waiting Time */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
+          <div className="p-2 bg-emerald-500/10 text-emerald-500 rounded-lg flex-shrink-0"><Clock className="h-4 w-4" /></div>
+          <div className="min-w-0">
+            <h4 className="text-slate-500 dark:text-slate-400 text-[9px] font-bold uppercase tracking-wider mb-0.5 truncate">Saved Time</h4>
+            <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight truncate">1.5 Hrs/Slot</p>
+          </div>
+        </div>
+
+        {/* Card 4: Nearby Temples */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
+          <div className="p-2 bg-purple-500/10 text-purple-500 rounded-lg flex-shrink-0"><MapPin className="h-4 w-4" /></div>
+          <div className="min-w-0">
+            <h4 className="text-slate-500 dark:text-slate-400 text-[9px] font-bold uppercase tracking-wider mb-0.5 truncate">Nearby</h4>
+            <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight truncate">14 <span className="text-[9px] font-medium text-slate-500 ml-0.5">&lt;50km</span></p>
+          </div>
+        </div>
+
+        {/* Card 5: Today's Crowd Index */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
+          <div className="p-2 bg-red-500/10 text-red-500 rounded-lg flex-shrink-0"><Users className="h-4 w-4" /></div>
+          <div className="min-w-0">
+            <h4 className="text-slate-500 dark:text-slate-400 text-[9px] font-bold uppercase tracking-wider mb-0.5 truncate">Crowd Index</h4>
+            <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight truncate">High Surge</p>
           </div>
         </div>
       </div>
@@ -568,48 +637,99 @@ function ExploreView({ temples, setActiveTab, user, templesLimit = 3 }) {
             <motion.div
               key={t._id}
               whileHover={{ y: -5 }}
-              className="bg-white dark:bg-slate-900 border border-slate-850 rounded-2xl overflow-hidden shadow-lg hover:border-gold/30 transition-all flex flex-col"
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl hover:border-saffron/30 transition-all flex flex-col group"
             >
-              <div className="h-44 bg-white dark:bg-slate-800 relative">
+              {/* Image Header */}
+              <div className="h-52 bg-slate-100 dark:bg-slate-800 relative overflow-hidden">
                 <img
                   src={t.image || "https://images.unsplash.com/photo-1600100397608-f010e42edb7a?auto=format&fit=crop&w=600&q=80"}
                   alt={t.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
-                <span className={`absolute top-4 right-4 px-3 py-1 text-xs font-extrabold rounded-full ${t.crowdLevel === 'High' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-                    t.crowdLevel === 'Moderate' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
-                      'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                  }`}>
-                  {t.crowdLevel} Crowd
-                </span>
-              </div>
-              <div className="p-6 flex-1 flex flex-col justify-between">
-                <div>
-                  <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-1.5">{t.name}</h4>
-                  <div className="flex flex-col gap-1 mb-4">
-                    <p className="text-slate-600 dark:text-slate-400 text-sm flex items-center gap-1.5"><MapPin className="h-4 w-4 text-saffron" /> {t.location}</p>
-                    {userLocation && t.lat && t.lon && (
-                      <p className="text-slate-500 text-xs flex items-center gap-1.5"><Map className="h-3.5 w-3.5 text-blue-400" /> {calculateDistance(userLocation.lat, userLocation.lon, t.lat, t.lon)} km away (GPS)</p>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 bg-white dark:bg-slate-950/40 p-3 rounded-xl text-xs mb-4">
-                    <div>
-                      <span className="text-slate-500 block mb-0.5">Wait Time</span>
-                      <span className="text-gold font-bold text-sm">{t.waitTime} mins</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 block mb-0.5">Hourly Limit</span>
-                      <span className="text-slate-800 dark:text-slate-200 font-bold text-sm">{Math.floor(t.dailyLimit / 12).toLocaleString()}</span>
-                    </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                
+                {/* Badges */}
+                <div className="absolute top-4 left-4 flex flex-col gap-2">
+                  <div className="bg-white/90 dark:bg-black/70 backdrop-blur-sm px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-sm border border-white/20">
+                    <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500" />
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      {t.rating || '4.8'}
+                    </span>
                   </div>
                 </div>
-                <button
-                  onClick={() => setSelectedTemple(t)}
-                  className="w-full py-2.5 bg-saffron hover:bg-[#e85a28] text-slate-900 dark:text-white font-bold text-sm rounded-xl transition-all"
-                >
-                  View Details & Book
-                </button>
+
+                <div className="absolute top-4 right-4">
+                  <span className={`px-3 py-1.5 text-xs font-bold rounded-xl shadow-sm backdrop-blur-md flex items-center gap-1.5 ${t.crowdLevel === 'High' ? 'bg-red-500/90 text-white' :
+                      t.crowdLevel === 'Moderate' ? 'bg-amber-500/90 text-white' :
+                        'bg-emerald-500/90 text-white'
+                    }`}>
+                    <Users className="h-3.5 w-3.5" />
+                    {t.crowdLevel} Crowd
+                  </span>
+                </div>
+                
+                {/* Image Footer Details */}
+                <div className="absolute bottom-4 left-4 right-4">
+                  <h4 className="text-xl font-bold text-white mb-1 drop-shadow-md leading-tight line-clamp-1">{t.name}</h4>
+                  <p className="text-slate-200 text-sm flex items-center gap-1.5 drop-shadow-md">
+                    <MapPin className="h-4 w-4 text-saffron shrink-0" /> {t.location}
+                  </p>
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="p-5 flex-1 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+                    <div className="flex flex-col">
+                      <span className="text-slate-500 dark:text-slate-400 text-xs font-medium flex items-center gap-1 mb-1">
+                        <Clock className="h-3.5 w-3.5" /> Waiting Time
+                      </span>
+                      <span className="text-gold font-bold text-lg">{t.waitTime} <span className="text-sm font-medium text-slate-600 dark:text-slate-400">mins</span></span>
+                    </div>
+                    <div className="h-8 w-px bg-slate-200 dark:bg-slate-700"></div>
+                    <div className="flex flex-col items-end text-right">
+                      <span className="text-slate-500 dark:text-slate-400 text-xs font-medium flex items-center justify-end gap-1 mb-1">
+                        <Calendar className="h-3.5 w-3.5" /> Timings
+                      </span>
+                      <span className="text-slate-800 dark:text-slate-200 font-bold text-sm leading-tight">{t.timings}</span>
+                    </div>
+                  </div>
+
+                  {userLocation && t.lat && t.lon ? (
+                    <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-xl p-3 mb-5 flex items-center gap-3">
+                      <div className="bg-blue-100 dark:bg-blue-900/40 p-2 rounded-lg text-blue-600 dark:text-blue-400 flex-shrink-0">
+                        <Map className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">Distance from you</p>
+                        <p className="text-sm font-bold text-blue-800 dark:text-blue-300 truncate">{calculateDistance(userLocation.lat, userLocation.lon, t.lat, t.lon)} km</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 rounded-xl p-3 mb-5 h-[58px]">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 flex items-start gap-2">
+                        <Info className="h-4 w-4 text-saffron shrink-0 mt-0.5" />
+                        <span className="line-clamp-2">{t.history}</span>
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-3 mt-auto pt-2">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSelectedTemple(t); }}
+                    className="flex-1 py-2.5 bg-saffron/10 hover:bg-saffron/20 text-saffron font-bold text-sm rounded-xl transition-all border border-saffron/20"
+                  >
+                    View Details
+                  </button>
+                  <button
+                    onClick={() => setSelectedTemple(t)}
+                    className="flex-1 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2"
+                  >
+                    Book Now
+                  </button>
+                </div>
               </div>
             </motion.div>
           ))}
@@ -639,7 +759,10 @@ function ExploreView({ temples, setActiveTab, user, templesLimit = 3 }) {
 // MODAL: TEMPLE DETAILS, AI CROWD, DARSHAN BOOKING & QR TICKET
 // =============================================================
 function TempleDetailsModal({ temple, user, onClose }) {
-  const [step, setStep] = useState('details'); // details, booking, payment, ticket
+  const [step, setStep] = useState('details'); // details, booking, aadhaar, payment, ticket
+  const [aadhaarNumber, setAadhaarNumber] = useState('');
+  const [otp, setOtp] = useState('');
+  const [verificationStatus, setVerificationStatus] = useState('idle'); // idle, loading, sent, verifying, success
   const [formData, setFormData] = useState({
     date: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
     timeSlot: '09:00 AM (Available)',
@@ -652,22 +775,43 @@ function TempleDetailsModal({ temple, user, onClose }) {
   const [bookedData, setBookedData] = useState(null);
   const [isPaying, setIsPaying] = useState(false);
   const [payMethod, setPayMethod] = useState('upi');
+  const [showSlotPicker, setShowSlotPicker] = useState(false);
 
+  const currentHour = new Date().getHours();
   // Simulated AI Hourly Crowd Forecast Data (Screen 8)
   const hourlyPredictionData = [
-    { time: '6 AM', wait: 20, limit: 2000, crowd: 'Low' },
-    { time: '8 AM', wait: temple.waitTime * 0.8, limit: 3000, crowd: 'Moderate' },
-    { time: '10 AM', wait: temple.waitTime, limit: 4500, crowd: 'High' },
-    { time: '12 PM', wait: temple.waitTime * 1.5, limit: 5000, crowd: 'Peak' },
-    { time: '2 PM', wait: temple.waitTime * 0.9, limit: 4000, crowd: 'High' },
-    { time: '4 PM', wait: temple.waitTime * 0.7, limit: 3500, crowd: 'Moderate' },
-    { time: '6 PM', wait: temple.waitTime * 1.1, limit: 4500, crowd: 'High' },
-    { time: '8 PM', wait: 25, limit: 2500, crowd: 'Low' }
-  ];
+    { time: '6 AM', hour: 6, wait: 20, limit: 2000, crowd: 'Low' },
+    { time: '8 AM', hour: 8, wait: temple.waitTime * 0.8, limit: 3000, crowd: 'Moderate' },
+    { time: '10 AM', hour: 10, wait: temple.waitTime, limit: 4500, crowd: 'High' },
+    { time: '12 PM', hour: 12, wait: temple.waitTime * 1.5, limit: 5000, crowd: 'Peak' },
+    { time: '2 PM', hour: 14, wait: temple.waitTime * 0.9, limit: 4000, crowd: 'High' },
+    { time: '4 PM', hour: 16, wait: temple.waitTime * 0.7, limit: 3500, crowd: 'Moderate' },
+    { time: '6 PM', hour: 18, wait: temple.waitTime * 1.1, limit: 4500, crowd: 'High' },
+    { time: '8 PM', hour: 20, wait: 25, limit: 2500, crowd: 'Low' }
+  ].map(d => ({ ...d, isCurrent: Math.abs(currentHour - d.hour) <= 1 }));
 
   const handleBookSubmit = (e) => {
     e.preventDefault();
-    setStep('payment');
+    setStep('aadhaar');
+  };
+
+  const handleSendOTP = () => {
+    if (aadhaarNumber.length < 14) return; // Including dashes
+    setVerificationStatus('loading');
+    setTimeout(() => {
+      setVerificationStatus('sent');
+    }, 1200);
+  };
+
+  const handleVerifyOTP = () => {
+    if (otp.length !== 6) return;
+    setVerificationStatus('verifying');
+    setTimeout(() => {
+      setVerificationStatus('success');
+      setTimeout(() => {
+        setStep('payment');
+      }, 800);
+    }, 1500);
   };
 
   const handlePayment = () => {
@@ -738,10 +882,10 @@ function TempleDetailsModal({ temple, user, onClose }) {
 
           {/* STEP 1: TEMPLE DETAILS & CROWD PREDICTION (Screen 7 & 8) */}
           {step === 'details' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div>
-                <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Temple History & Rules</h4>
-                <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed mb-4">{temple.history}</p>
+                <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Temple History & Rules</h4>
+                <p className="text-slate-600 dark:text-slate-400 text-xs leading-tight mb-2">{temple.history}</p>
                 <div className="grid grid-cols-2 gap-4 text-xs">
                   <div className="bg-white dark:bg-slate-950/40 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
                     <span className="text-slate-500 block mb-0.5">Darshan Hours</span>
@@ -756,7 +900,7 @@ function TempleDetailsModal({ temple, user, onClose }) {
 
               {/* AI Crowd Predictions (Screen 8) */}
               <div>
-                <div className="flex justify-between items-center mb-3">
+                <div className="flex justify-between items-center mb-2">
                   <h4 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <Sparkles className="h-4.5 w-4.5 text-gold animate-pulse" /> AI Crowd Prediction
                   </h4>
@@ -764,15 +908,37 @@ function TempleDetailsModal({ temple, user, onClose }) {
                 </div>
 
                 {/* Recharts Hourly Wait Times Forecast */}
-                <div className="h-36 w-full bg-white dark:bg-slate-950/40 p-2 rounded-xl border border-slate-200 dark:border-slate-800 mb-3">
+                <div className="h-40 w-full bg-slate-50 dark:bg-slate-950/60 pt-4 pb-2 pr-2 pl-0 rounded-2xl border border-slate-200 dark:border-slate-800 mb-2 relative overflow-hidden group shadow-inner">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={hourlyPredictionData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                      <XAxis dataKey="time" stroke="#94A3B8" fontSize={9} />
-                      <YAxis stroke="#94A3B8" fontSize={9} width={15} />
-                      <Tooltip contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', fontSize: 10 }} />
-                      <Area type="monotone" dataKey="wait" stroke="#FF6B35" fill="#FF6B35" fillOpacity={0.15} />
-                    </AreaChart>
+                    <BarChart data={hourlyPredictionData} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--grid-color, #334155)" strokeOpacity={0.4} className="dark:[--grid-color:#334155] [--grid-color:#E2E8F0]" />
+                      <XAxis 
+                        dataKey="time" 
+                        stroke="#94A3B8" 
+                        fontSize={11} 
+                        axisLine={false} 
+                        tickLine={false}
+                        tick={{fill: '#94A3B8', dy: 10}}
+                        minTickGap={15}
+                      />
+                      <YAxis 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{fill: '#94A3B8', fontSize: 10, dx: -5}} 
+                      />
+                      <Tooltip 
+                        cursor={{fill: 'rgba(255, 107, 53, 0.1)'}} 
+                        contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(10px)', borderRadius: '12px', fontSize: 13, color: '#fff', border: '1px solid rgba(255,107,53,0.3)', boxShadow: '0 10px 25px -5px rgba(255, 107, 53, 0.2)' }} 
+                        itemStyle={{ color: '#F8FAFC' }}
+                        formatter={(value) => [`${Math.round(value)} mins`, 'Est. Wait Time']}
+                        labelStyle={{color: '#E2E8F0', marginBottom: '4px', fontWeight: 'bold'}}
+                      />
+                      <Bar dataKey="wait" radius={[6, 6, 0, 0]} maxBarSize={30} animationDuration={1500}>
+                        {hourlyPredictionData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.isCurrent ? '#FF6B35' : 'var(--bar-color)'} className="dark:[--bar-color:#9A3412] [--bar-color:#FDBA74] transition-all duration-300 hover:opacity-80" />
+                        ))}
+                      </Bar>
+                    </BarChart>
                   </ResponsiveContainer>
                 </div>
                 <p className="text-[10px] text-slate-500 italic text-center">
@@ -782,15 +948,15 @@ function TempleDetailsModal({ temple, user, onClose }) {
 
               {/* Facilities list */}
               <div>
-                <h4 className="text-sm font-semibold text-slate-900 dark:text-white mb-2">Available Facilities</h4>
-                <div className="flex flex-wrap gap-2">
+                <h4 className="text-sm font-semibold text-slate-900 dark:text-white mb-1.5">Available Facilities</h4>
+                <div className="flex flex-wrap gap-1.5">
                   {temple.facilities?.map(f => (
-                    <span key={f} className="text-[11px] font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-700 px-3 py-1 rounded-full">{f}</span>
+                    <span key={f} className="text-[11px] font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-700 px-2 py-0.5 rounded-full">{f}</span>
                   )) || 'None'}
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex gap-4">
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex gap-4">
                 <button
                   onClick={() => setStep('booking')}
                   className="flex-1 py-3 bg-saffron hover:bg-[#e85a28] text-slate-900 dark:text-white font-bold text-md rounded-xl transition-all shadow-lg shadow-saffron/20"
@@ -803,53 +969,122 @@ function TempleDetailsModal({ temple, user, onClose }) {
 
           {/* STEP 2: DARSHAN BOOKING FORM (Screen 9, 10, 11) */}
           {step === 'booking' && (
-            <form onSubmit={handleBookSubmit} className="space-y-5">
-              <div className="flex items-center gap-2 mb-2 text-saffron font-bold text-sm">
+            <form onSubmit={handleBookSubmit} className="space-y-3">
+              <div className="flex items-center gap-2 mb-1 text-saffron font-bold text-sm">
                 <span className="cursor-pointer hover:underline" onClick={() => setStep('details')}>← Back to Details</span>
               </div>
-              <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Darshan Slot Settings</h4>
+              <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Darshan Slot Settings</h4>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <div>
                   <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1.5 font-semibold">Select Date</label>
                   <input
                     type="date"
-                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-saffron"
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-saffron cursor-pointer"
                     value={formData.date}
                     min={new Date().toISOString().split('T')[0]}
                     onChange={e => setFormData({ ...formData, date: e.target.value })}
+                    onClick={(e) => e.target.showPicker && e.target.showPicker()}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1.5 font-semibold">Time Slot</label>
-                  <select
-                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-saffron"
-                    value={formData.timeSlot}
-                    onChange={e => setFormData({ ...formData, timeSlot: e.target.value })}
-                  >
-                    <option>07:00 AM (Low Wait)</option>
-                    <option>09:00 AM (Available)</option>
-                    <option>11:00 AM (Available)</option>
-                    <option>01:00 PM (Fast Filling)</option>
-                    <option>03:00 PM (Moderate Crowds)</option>
-                    <option>05:00 PM (Aarti Peak)</option>
-                  </select>
+                  <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1 font-semibold">Select Time Slot</label>
+                  <div className="relative">
+                    <div 
+                      onClick={() => setShowSlotPicker(!showSlotPicker)}
+                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white text-xs cursor-pointer flex justify-between items-center hover:border-saffron transition-colors"
+                    >
+                      <span className="font-semibold">{formData.timeSlot}</span>
+                      <ChevronRight className={`h-4 w-4 transition-transform ${showSlotPicker ? 'rotate-90 text-saffron' : 'text-slate-400'}`} />
+                    </div>
+                    
+                    <AnimatePresence>
+                      {showSlotPicker && (
+                        <motion.div 
+                          initial={{ opacity: 0, y: -10 }} 
+                          animate={{ opacity: 1, y: 0 }} 
+                          exit={{ opacity: 0, y: -10 }}
+                          className="absolute z-50 top-full mt-2 left-0 right-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-2 max-h-[220px] overflow-y-auto"
+                        >
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                            {[
+                              { time: '07:00 AM', status: 'Low Wait', color: 'bg-emerald-500', isMorning: true },
+                              { time: '08:00 AM', status: 'Low Wait', color: 'bg-emerald-500', isMorning: true },
+                              { time: '09:00 AM', status: 'Available', color: 'bg-amber-500', isMorning: true },
+                              { time: '10:00 AM', status: 'Available', color: 'bg-amber-500', isMorning: true },
+                              { time: '11:00 AM', status: 'Fast Filling', color: 'bg-orange-500', isMorning: true },
+                              { time: '12:00 PM', status: 'Aarti Peak', color: 'bg-red-500', isMorning: false },
+                              { time: '01:00 PM', status: 'Moderate', color: 'bg-amber-500', isMorning: false },
+                              { time: '02:00 PM', status: 'Available', color: 'bg-amber-500', isMorning: false },
+                              { time: '03:00 PM', status: 'Low Wait', color: 'bg-emerald-500', isMorning: false },
+                              { time: '04:00 PM', status: 'Moderate', color: 'bg-amber-500', isMorning: false },
+                              { time: '05:00 PM', status: 'Aarti Peak', color: 'bg-red-500', isMorning: false }
+                            ].map((slot, idx) => {
+                              const fullSlotName = `${slot.time} (${slot.status})`;
+                              const isSelected = formData.timeSlot === fullSlotName || formData.timeSlot.includes(slot.time);
+                              return (
+                                <div
+                                  key={idx}
+                                  onClick={() => {
+                                    setFormData({ ...formData, timeSlot: fullSlotName });
+                                    setShowSlotPicker(false);
+                                  }}
+                                  className={`relative overflow-hidden cursor-pointer rounded-lg border p-1.5 pl-2 transition-all duration-200 ${isSelected ? 'border-saffron bg-saffron/5 shadow-md shadow-saffron/10' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 hover:border-slate-300 dark:hover:border-slate-700'}`}
+                                >
+                                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${slot.color}`} />
+                                  <div className="flex justify-between items-start mb-0.5">
+                                    <span className={`font-bold text-[11px] ${isSelected ? 'text-saffron' : 'text-slate-800 dark:text-slate-200'}`}>{slot.time}</span>
+                                    {slot.isMorning ? <Sun className={`h-3 w-3 ${isSelected ? 'text-saffron' : 'text-slate-400'}`} /> : <Moon className={`h-3 w-3 ${isSelected ? 'text-saffron' : 'text-slate-400'}`} />}
+                                  </div>
+                                  <p className="text-[9px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold truncate">{slot.status}</p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1.5 font-semibold">No. of Devotees</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="10"
-                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-saffron"
-                    value={formData.visitors}
-                    onChange={e => setFormData({ ...formData, visitors: parseInt(e.target.value) || 1 })}
-                    required
-                  />
+                  <div className="flex items-center justify-between bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-1.5 h-[38px] focus-within:border-saffron transition-colors">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, visitors: Math.max(1, (parseInt(formData.visitors) || 1) - 1) })}
+                      className="w-[26px] h-[26px] flex shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-saffron hover:text-white transition-colors shadow-sm"
+                    >
+                      <Minus className="w-3 h-3" strokeWidth={3} />
+                    </button>
+                    
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      className="w-full bg-transparent text-center text-slate-900 dark:text-white text-sm font-bold focus:outline-none m-0"
+                      value={formData.visitors}
+                      onChange={e => {
+                        const val = e.target.value.replace(/[^0-9]/g, '');
+                        setFormData({ ...formData, visitors: val === '' ? '' : parseInt(val) });
+                      }}
+                      onBlur={() => {
+                        if (!formData.visitors || formData.visitors < 1) setFormData({ ...formData, visitors: 1 });
+                      }}
+                      required
+                    />
+                    
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, visitors: (parseInt(formData.visitors) || 1) + 1 })}
+                      className="w-[26px] h-[26px] flex shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-saffron hover:text-white transition-colors shadow-sm"
+                    >
+                      <Plus className="w-3 h-3" strokeWidth={3} />
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1.5 font-semibold">Darshan Category</label>
@@ -866,7 +1101,7 @@ function TempleDetailsModal({ temple, user, onClose }) {
               </div>
 
               {/* Accessibility (Screen 10) */}
-              <div className="bg-white dark:bg-slate-950/40 p-4 rounded-xl border border-slate-850 space-y-2.5">
+              <div className="bg-white dark:bg-slate-950/40 p-3 rounded-xl border border-slate-850 space-y-1.5">
                 <span className="text-xs font-bold text-gold flex items-center gap-1.5 mb-1">
                   <HeartHandshake className="h-4 w-4" /> Priority Accessibility Support
                 </span>
@@ -912,11 +1147,101 @@ function TempleDetailsModal({ temple, user, onClose }) {
 
               <button
                 type="submit"
-                className="w-full py-3.5 bg-saffron hover:bg-[#e85a28] text-slate-900 dark:text-white font-bold text-md rounded-xl transition-all shadow-lg"
+                className="w-full py-2.5 bg-saffron hover:bg-[#e85a28] text-slate-900 dark:text-white font-bold text-md rounded-xl transition-all shadow-lg mt-2"
               >
                 Proceed to Secure Payment
               </button>
             </form>
+          )}
+
+          {/* STEP 2.5: AADHAAR VERIFICATION */}
+          {step === 'aadhaar' && (
+            <div className="space-y-6 text-center py-6">
+              <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 text-blue-500 rounded-full flex items-center justify-center mx-auto border border-blue-500/20 mb-2 shadow-sm">
+                <ShieldCheck className="h-8 w-8" />
+              </div>
+              <div>
+                <h4 className="text-xl font-bold text-slate-900 dark:text-white">Verify Identity</h4>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Aadhaar authentication is required for secure bookings.</p>
+              </div>
+
+              <div className="max-w-sm mx-auto space-y-4 text-left">
+                <div>
+                  <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1.5 font-semibold">Aadhaar Number (UID)</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-3 text-slate-900 dark:text-white text-sm font-bold tracking-widest focus:outline-none focus:border-blue-500 transition-colors"
+                      placeholder="XXXX-XXXX-XXXX"
+                      maxLength={14}
+                      value={aadhaarNumber}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/\D/g, '');
+                        val = val.match(/.{1,4}/g)?.join('-') || val;
+                        setAadhaarNumber(val);
+                      }}
+                      disabled={verificationStatus !== 'idle'}
+                    />
+                    <Fingerprint className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                  </div>
+                </div>
+
+                {verificationStatus === 'idle' || verificationStatus === 'loading' ? (
+                  <button
+                    onClick={handleSendOTP}
+                    disabled={aadhaarNumber.length < 14 || verificationStatus === 'loading'}
+                    className={`w-full py-3 rounded-xl font-bold text-sm transition-all shadow-md flex items-center justify-center gap-2 ${
+                      aadhaarNumber.length < 14
+                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/30'
+                    }`}
+                  >
+                    {verificationStatus === 'loading' ? (
+                      <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Sending OTP...</>
+                    ) : 'Send OTP via UIDAI'}
+                  </button>
+                ) : null}
+
+                {(verificationStatus === 'sent' || verificationStatus === 'verifying' || verificationStatus === 'success') && (
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+                    <div>
+                      <label className="block text-xs text-emerald-600 dark:text-emerald-500 mb-1.5 font-semibold">OTP sent to registered mobile</label>
+                      <input
+                        type="text"
+                        className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-center text-slate-900 dark:text-white text-lg font-bold tracking-[0.5em] focus:outline-none focus:border-emerald-500 transition-colors"
+                        placeholder="••••••"
+                        maxLength={6}
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                        disabled={verificationStatus === 'verifying' || verificationStatus === 'success'}
+                      />
+                    </div>
+                    
+                    <button
+                      onClick={handleVerifyOTP}
+                      disabled={otp.length !== 6 || verificationStatus === 'verifying' || verificationStatus === 'success'}
+                      className={`w-full py-3 rounded-xl font-bold text-sm transition-all shadow-md flex items-center justify-center gap-2 ${
+                        verificationStatus === 'success' ? 'bg-emerald-500 text-white'
+                        : otp.length !== 6 ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30'
+                      }`}
+                    >
+                      {verificationStatus === 'verifying' ? (
+                        <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Verifying...</>
+                      ) : verificationStatus === 'success' ? (
+                        <><CheckCircle className="h-5 w-5" /> Verified</>
+                      ) : 'Verify & Proceed to Payment'}
+                    </button>
+                  </motion.div>
+                )}
+                
+                <div className="pt-2 text-center">
+                  <button onClick={() => {setStep('booking'); setVerificationStatus('idle'); setOtp(''); setAadhaarNumber('');}} className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-white underline">
+                    Cancel and go back
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* STEP 3: PAYMENT PORTAL (Screen 13) */}
@@ -1065,7 +1390,7 @@ function TempleDetailsModal({ temple, user, onClose }) {
 // ==========================================
 // VIEW 2: MULTI-TEMPLE PLANNER (Screen 18)
 // ==========================================
-function PlannerView({ temples }) {
+function PlannerView({ temples, onClose }) {
   const [formData, setFormData] = useState({
     startingCity: 'New Delhi',
     templeId: '1',
@@ -1098,9 +1423,16 @@ function PlannerView({ temples }) {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h3 className="text-3xl font-extrabold text-slate-900 dark:text-white">Multi-Temple Journey Planner</h3>
-        <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">AI-Powered route, accommodation, and budget calculation across multiple shrine stops.</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h3 className="text-3xl font-extrabold text-slate-900 dark:text-white">Multi-Temple Journey Planner</h3>
+          <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">AI-Powered route, accommodation, and budget calculation across multiple shrine stops.</p>
+        </div>
+        {onClose && (
+          <button onClick={onClose} className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
+            <X className="h-6 w-6" />
+          </button>
+        )}
       </div>
 
       <div className="grid md:grid-cols-3 gap-8">

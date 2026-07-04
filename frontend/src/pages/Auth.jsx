@@ -300,34 +300,46 @@ export default function Auth() {
   };
 
   const handleGoogleLogin = useGoogleLogin({
-    onSuccess: (codeResponse) => {
-      // The codeResponse contains an access_token. 
-      // We'll pass it to our backend to verify and generate our own JWT.
-      fetch(`${API_BASE_URL}/api/auth/google-login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken: codeResponse.access_token, role: role })
-      })
-        .then(async res => {
-          const text = await res.text();
-          try {
-            return { status: res.status, data: JSON.parse(text) };
-          } catch {
-            throw new Error(`Status ${res.status} | Non-JSON response: ${text.substring(0, 100)}`);
-          }
-        })
-        .then(({ status, data }) => {
-          if (status === 200) {
-            if (role === 'admin') {
-              triggerSuccessAnimation({ ...data.user, role: 'admin' }, data.token, '/admin');
-            } else {
-              triggerSuccessAnimation(data.user, data.token, '/devotee');
-            }
+    onSuccess: async (codeResponse) => {
+      try {
+        // Fetch user info using the access token
+        const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${codeResponse.access_token}` }
+        });
+        const userInfo = await userInfoRes.json();
+
+        // Pass the token and the fetched user info to our backend
+        const res = await fetch(`${API_BASE_URL}/api/auth/google-login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            idToken: codeResponse.access_token, 
+            role: role,
+            email: userInfo.email,
+            name: userInfo.name
+          })
+        });
+
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error(`Status ${res.status} | Non-JSON response: ${text.substring(0, 100)}`);
+        }
+
+        if (res.status === 200) {
+          if (role === 'admin') {
+            triggerSuccessAnimation({ ...data.user, role: 'admin' }, data.token, '/admin');
           } else {
-            setErrorMsg(data.message || 'Google Login failed');
+            triggerSuccessAnimation(data.user, data.token, '/devotee');
           }
-        })
-        .catch(err => setErrorMsg('Error: ' + err.message));
+        } else {
+          setErrorMsg(data.message || 'Google Login failed');
+        }
+      } catch (err) {
+        setErrorMsg('Error: ' + err.message);
+      }
     },
     onError: (error) => setErrorMsg('Google Login failed: ' + error.message)
   });

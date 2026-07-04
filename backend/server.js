@@ -86,7 +86,7 @@ const temples = [
   { _id: '7', name: 'Dwarkadhish Temple', location: 'Gujarat', dailyLimit: 25000, currentCapacity: 22000, waitTime: 35, crowdLevel: 'Moderate', image: 'https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=600&q=80', history: 'Dedicated to Lord Krishna, known as Jagat Mandir, built over 2000 years ago.', timings: '6:30 AM - 9:30 PM', dressCode: 'Traditional Indian', facilities: ['Locker facilities', 'Prasadam counter'] },
   { _id: '8', name: 'Jagannath Puri', location: 'Odisha', dailyLimit: 60000, currentCapacity: 50000, waitTime: 50, crowdLevel: 'High', image: 'https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?auto=format&fit=crop&w=600&q=80', history: 'Famous for its annual Ratha Yatra, dedicated to Lord Jagannath, Balabhadra and Subhadra.', timings: '5:00 AM - 11:00 PM', dressCode: 'Traditional clothes', facilities: ['Ananda Bazar (Food)', 'Shoe Stand', 'Rest Areas'] },
   { _id: '9', name: 'Meenakshi Temple', location: 'Tamil Nadu', dailyLimit: 45000, currentCapacity: 20000, waitTime: 15, crowdLevel: 'Low', image: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=600&q=80', history: 'A historic Hindu temple on the southern bank of Vaigai river in Madurai.', timings: '5:00 AM - 10:00 PM', dressCode: 'Full length covering apparel', facilities: ['Cloak Rooms', 'Guide services', 'Drinking Water'] },
-  { _id: '10', name: 'Badrinath Temple', location: 'Uttarakhand', dailyLimit: 15000, currentCapacity: 14000, waitTime: 40, crowdLevel: 'High', image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=600&q=80', history: 'Part of Char Dham pilgrimage, dedicated to Lord Vishnu along the Alaknanda river.', timings: '4:30 AM - 9:00 PM', dressCode: 'Warm modest clothing', facilities: ['Thermal Springs Bath', 'Medical Station'] },
+  { _id: '10', name: 'Badrinath Temple', location: 'Uttarakhand', dailyLimit: 15000, currentCapacity: 14000, waitTime: 40, crowdLevel: 'High', image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=600&q=80', history: 'Part of Char Dham pilgrimage, dedicated to Lord Vishnu along the Alaknanda river.', timings: '4:30 AM - 9:00 PM', dressCode: 'Warm modest clothing', facilities: ['Thermal Springs Bath', 'Medical Station'] },
   { _id: '30', name: 'Tirumala Venkateswara Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 68, crowdLevel: 'High', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.284294898890614, lon: 79.76557518199166 },
   { _id: '31', name: 'Sri Padmavathi Ammavari Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 30, crowdLevel: 'Moderate', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.486150223203268, lon: 80.05846632278082 },
   { _id: '32', name: 'Sri Govindaraja Swamy Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 28, crowdLevel: 'Moderate', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 17.053772438007087, lon: 80.95470493572432 },
@@ -282,8 +282,9 @@ app.post('/api/auth/register', (req, res) => {
 });
 
 app.post('/api/auth/google-login', (req, res) => {
-  const { idToken, role } = req.body;
-  const mockEmail = 'google-user@example.com';
+  const { idToken, role, email, name } = req.body;
+  const mockEmail = email || 'google-user@example.com';
+  const mockName = name || 'Google User';
   
   if (role === 'admin') {
     if (!authorizedAdmins.includes(mockEmail)) {
@@ -296,7 +297,7 @@ app.post('/api/auth/google-login', (req, res) => {
     token: `mock-jwt-google-${Date.now()}`,
     user: {
       email: mockEmail,
-      name: 'Google User',
+      name: mockName,
       role: role || 'devotee',
       phone: '+91 9999999999',
       address: 'New Delhi',
