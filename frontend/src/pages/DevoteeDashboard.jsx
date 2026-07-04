@@ -5,7 +5,7 @@ import {
   MapPin, Clock, Users, QrCode, LogOut, Bell, Compass, Calendar,
   Search, ShieldAlert, HeartHandshake, Hotel, Map, User, CheckCircle,
   CreditCard, ChevronRight, X, Sparkles, Filter, Info, PhoneCall, Star, Phone, Activity, Sun, Moon, Plus, Minus,
-  ShieldCheck, Fingerprint, Smartphone
+  ShieldCheck, Fingerprint, Smartphone, Cloud, AlertTriangle
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from 'recharts';
@@ -384,7 +384,7 @@ function AnalysisView({ temples, user, setActiveTab }) {
             
             <div className="pt-6 border-t border-slate-200 dark:border-slate-800 flex justify-end">
               <button
-                onClick={() => setBookingTemple(temple)}
+                onClick={() => setBookingTemple({...temple, isViewOnly: false})}
                 className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-2xl font-bold text-base transition-all shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2"
               >
                 Book Darshan Pass <ChevronRight className="h-5 w-5" />
@@ -718,13 +718,13 @@ function ExploreView({ temples, setActiveTab, user, templesLimit = 3 }) {
 
                 <div className="flex gap-3 mt-auto pt-2">
                   <button
-                    onClick={(e) => { e.stopPropagation(); setSelectedTemple(t); }}
+                    onClick={(e) => { e.stopPropagation(); setSelectedTemple({...t, isViewOnly: true}); }}
                     className="flex-1 py-2.5 bg-saffron/10 hover:bg-saffron/20 text-saffron font-bold text-sm rounded-xl transition-all border border-saffron/20"
                   >
                     View Details
                   </button>
                   <button
-                    onClick={() => setSelectedTemple(t)}
+                    onClick={() => setSelectedTemple({...t, isViewOnly: false})}
                     className="flex-1 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2"
                   >
                     Book Now
@@ -776,6 +776,59 @@ function TempleDetailsModal({ temple, user, onClose }) {
   const [isPaying, setIsPaying] = useState(false);
   const [payMethod, setPayMethod] = useState('upi');
   const [showSlotPicker, setShowSlotPicker] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+  const [liveWeather, setLiveWeather] = useState(null);
+  const [liveWeatherAlert, setLiveWeatherAlert] = useState(null);
+
+  useEffect(() => {
+    if (temple.lat && temple.lon) {
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${temple.lat}&longitude=${temple.lon}&current_weather=true`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.current_weather) {
+            const temp = data.current_weather.temperature;
+            const code = data.current_weather.weathercode;
+            
+            let condition = 'Clear Sky';
+            let alertMsg = null;
+            
+            if (code === 0) condition = 'Clear Sky';
+            else if (code >= 1 && code <= 3) condition = 'Partly Cloudy';
+            else if (code === 45 || code === 48) condition = 'Foggy';
+            else if (code >= 51 && code <= 55) condition = 'Drizzle';
+            else if (code >= 61 && code <= 65) condition = 'Rain';
+            else if (code >= 71 && code <= 77) condition = 'Snow';
+            else if (code >= 80 && code <= 82) { condition = 'Heavy Rain'; alertMsg = 'Red Alert: Heavy rain showers expected.'; }
+            else if (code >= 95) { condition = 'Thunderstorm'; alertMsg = 'Severe Alert: Thunderstorms in area. Stay indoors.'; }
+            
+            setLiveWeather(`${temp}°C, ${condition}`);
+            setLiveWeatherAlert(alertMsg);
+          }
+        })
+        .catch(err => console.error('Weather fetch error:', err));
+    }
+  }, [temple]);
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => setUserLocation({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+        err => console.log('Geolocation error:', err)
+      );
+    }
+  }, []);
+
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+    const R = 6371; // km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return (R * c).toFixed(1);
+  };
 
   const currentHour = new Date().getHours();
   // Simulated AI Hourly Crowd Forecast Data (Screen 8)
@@ -882,87 +935,129 @@ function TempleDetailsModal({ temple, user, onClose }) {
 
           {/* STEP 1: TEMPLE DETAILS & CROWD PREDICTION (Screen 7 & 8) */}
           {step === 'details' && (
-            <div className="space-y-4">
+            <div className="space-y-4 flex flex-col h-full">
               <div>
-                <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Temple History & Rules</h4>
-                <p className="text-slate-600 dark:text-slate-400 text-xs leading-tight mb-2">{temple.history}</p>
-                <div className="grid grid-cols-2 gap-4 text-xs">
-                  <div className="bg-white dark:bg-slate-950/40 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
-                    <span className="text-slate-500 block mb-0.5">Darshan Hours</span>
+                <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Temple Details & Rules</h4>
+                <p className="text-slate-600 dark:text-slate-400 text-xs leading-tight mb-4">{temple.history}</p>
+                <div className="grid grid-cols-2 gap-4 text-xs mb-4">
+                  <div className="bg-white dark:bg-slate-950/40 p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col justify-center">
+                    <span className="text-slate-500 block mb-1">Darshan Hours / Rules</span>
                     <span className="font-semibold text-slate-800 dark:text-slate-200">{temple.timings}</span>
                   </div>
-                  <div className="bg-white dark:bg-slate-950/40 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
-                    <span className="text-slate-500 block mb-0.5">Dress Code</span>
+                  <div className="bg-white dark:bg-slate-950/40 p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col justify-center">
+                    <span className="text-slate-500 block mb-1">Dress Code</span>
                     <span className="font-semibold text-slate-800 dark:text-slate-200">{temple.dressCode}</span>
                   </div>
+                  {temple.isViewOnly && (
+                    <>
+                      <div className="bg-white dark:bg-slate-950/40 p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col justify-center">
+                        <span className="text-slate-500 block mb-1">Parking Details</span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-200">{temple.parking || 'Available Nearby'}</span>
+                      </div>
+                      <div className={`p-3 rounded-xl border flex flex-col justify-center ${(liveWeatherAlert || temple.weatherAlert) ? 'bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-900/50' : 'bg-white dark:bg-slate-950/40 border-slate-200 dark:border-slate-800'}`}>
+                        <span className={`block mb-1 flex items-center justify-between ${(liveWeatherAlert || temple.weatherAlert) ? 'text-red-600 dark:text-red-400 font-bold' : 'text-slate-500'}`}>
+                          <span className="flex items-center gap-1"><Cloud className="h-3 w-3" /> Weather Conditions</span>
+                          {(liveWeatherAlert || temple.weatherAlert) && <AlertTriangle className="h-3.5 w-3.5 animate-pulse text-red-600 dark:text-red-400" />}
+                        </span>
+                        <span className={`font-semibold ${(liveWeatherAlert || temple.weatherAlert) ? 'text-red-800 dark:text-red-300' : 'text-slate-800 dark:text-slate-200'}`}>
+                          {liveWeather || temple.weather || '28°C, Clear Sky'}
+                        </span>
+                        {(liveWeatherAlert || temple.weatherAlert) && (
+                          <p className="text-[10px] leading-tight text-red-700 dark:text-red-400 mt-1.5 font-medium">{liveWeatherAlert || temple.weatherAlert}</p>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
-              {/* AI Crowd Predictions (Screen 8) */}
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <h4 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <Sparkles className="h-4.5 w-4.5 text-gold animate-pulse" /> AI Crowd Prediction
-                  </h4>
-                  <span className="text-xs text-slate-600 dark:text-slate-400">Current Wait: <strong className="text-gold">{temple.waitTime}m</strong></span>
-                </div>
+              {!temple.isViewOnly && (
+                <>
+                  {/* AI Crowd Predictions (Screen 8) */}
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <Sparkles className="h-4.5 w-4.5 text-gold animate-pulse" /> AI Crowd Prediction
+                      </h4>
+                      <span className="text-xs text-slate-600 dark:text-slate-400">Current Wait: <strong className="text-gold">{temple.waitTime}m</strong></span>
+                    </div>
 
-                {/* Recharts Hourly Wait Times Forecast */}
-                <div className="h-40 w-full bg-slate-50 dark:bg-slate-950/60 pt-4 pb-2 pr-2 pl-0 rounded-2xl border border-slate-200 dark:border-slate-800 mb-2 relative overflow-hidden group shadow-inner">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={hourlyPredictionData} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--grid-color, #334155)" strokeOpacity={0.4} className="dark:[--grid-color:#334155] [--grid-color:#E2E8F0]" />
-                      <XAxis 
-                        dataKey="time" 
-                        stroke="#94A3B8" 
-                        fontSize={11} 
-                        axisLine={false} 
-                        tickLine={false}
-                        tick={{fill: '#94A3B8', dy: 10}}
-                        minTickGap={15}
-                      />
-                      <YAxis 
-                        axisLine={false} 
-                        tickLine={false} 
-                        tick={{fill: '#94A3B8', fontSize: 10, dx: -5}} 
-                      />
-                      <Tooltip 
-                        cursor={{fill: 'rgba(255, 107, 53, 0.1)'}} 
-                        contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(10px)', borderRadius: '12px', fontSize: 13, color: '#fff', border: '1px solid rgba(255,107,53,0.3)', boxShadow: '0 10px 25px -5px rgba(255, 107, 53, 0.2)' }} 
-                        itemStyle={{ color: '#F8FAFC' }}
-                        formatter={(value) => [`${Math.round(value)} mins`, 'Est. Wait Time']}
-                        labelStyle={{color: '#E2E8F0', marginBottom: '4px', fontWeight: 'bold'}}
-                      />
-                      <Bar dataKey="wait" radius={[6, 6, 0, 0]} maxBarSize={30} animationDuration={1500}>
-                        {hourlyPredictionData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.isCurrent ? '#FF6B35' : 'var(--bar-color)'} className="dark:[--bar-color:#9A3412] [--bar-color:#FDBA74] transition-all duration-300 hover:opacity-80" />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                <p className="text-[10px] text-slate-500 italic text-center">
-                  🔥 Best hours to visit: <strong className="text-emerald-400">6:00 AM - 9:00 AM</strong>. Expect heavy peaks at noon due to afternoon Aarti.
-                </p>
-              </div>
+                    {/* Recharts Hourly Wait Times Forecast */}
+                    <div className="h-40 w-full bg-slate-50 dark:bg-slate-950/60 pt-4 pb-2 pr-2 pl-0 rounded-2xl border border-slate-200 dark:border-slate-800 mb-2 relative overflow-hidden group shadow-inner">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={hourlyPredictionData} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--grid-color, #334155)" strokeOpacity={0.4} className="dark:[--grid-color:#334155] [--grid-color:#E2E8F0]" />
+                          <XAxis 
+                            dataKey="time" 
+                            stroke="#94A3B8" 
+                            fontSize={11} 
+                            axisLine={false} 
+                            tickLine={false}
+                            tick={{fill: '#94A3B8', dy: 10}}
+                            minTickGap={15}
+                          />
+                          <YAxis 
+                            axisLine={false} 
+                            tickLine={false} 
+                            tick={{fill: '#94A3B8', fontSize: 10, dx: -5}} 
+                          />
+                          <Tooltip 
+                            cursor={{fill: 'rgba(255, 107, 53, 0.1)'}} 
+                            contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(10px)', borderRadius: '12px', fontSize: 13, color: '#fff', border: '1px solid rgba(255,107,53,0.3)', boxShadow: '0 10px 25px -5px rgba(255, 107, 53, 0.2)' }} 
+                            itemStyle={{ color: '#F8FAFC' }}
+                            formatter={(value) => [`${Math.round(value)} mins`, 'Est. Wait Time']}
+                            labelStyle={{color: '#E2E8F0', marginBottom: '4px', fontWeight: 'bold'}}
+                          />
+                          <Bar dataKey="wait" radius={[6, 6, 0, 0]} maxBarSize={30} animationDuration={1500}>
+                            {hourlyPredictionData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.isCurrent ? '#FF6B35' : 'var(--bar-color)'} className="dark:[--bar-color:#9A3412] [--bar-color:#FDBA74] transition-all duration-300 hover:opacity-80" />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <p className="text-[10px] text-slate-500 italic text-center">
+                      🔥 Best hours to visit: <strong className="text-emerald-400">6:00 AM - 9:00 AM</strong>. Expect heavy peaks at noon due to afternoon Aarti.
+                    </p>
+                  </div>
 
-              {/* Facilities list */}
-              <div>
-                <h4 className="text-sm font-semibold text-slate-900 dark:text-white mb-1.5">Available Facilities</h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {temple.facilities?.map(f => (
-                    <span key={f} className="text-[11px] font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-700 px-2 py-0.5 rounded-full">{f}</span>
-                  )) || 'None'}
-                </div>
-              </div>
-
-              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex gap-4">
-                <button
-                  onClick={() => setStep('booking')}
-                  className="flex-1 py-3 bg-saffron hover:bg-[#e85a28] text-slate-900 dark:text-white font-bold text-md rounded-xl transition-all shadow-lg shadow-saffron/20"
-                >
-                  Book Darshan Pass
-                </button>
+                  {/* Facilities list */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-slate-900 dark:text-white mb-1.5">Available Facilities</h4>
+                    <div className="flex flex-wrap gap-1.5">
+                      {temple.facilities?.map(f => (
+                        <span key={f} className="text-[11px] font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-700 px-2 py-0.5 rounded-full">{f}</span>
+                      )) || 'None'}
+                    </div>
+                  </div>
+                </>
+              )}
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex gap-4 mt-auto">
+                {temple.isViewOnly ? (
+                  <button
+                    onClick={() => {
+                      if (temple.lat && temple.lon) {
+                        let url = `https://www.google.com/maps/dir/?api=1&destination=${temple.lat},${temple.lon}`;
+                        if (userLocation) {
+                          url += `&origin=${userLocation.lat},${userLocation.lon}`;
+                        }
+                        window.open(url, '_blank');
+                      } else {
+                        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(temple.name + ' ' + temple.location)}`, '_blank');
+                      }
+                    }}
+                    className="flex-1 py-3 bg-saffron hover:bg-[#e85a28] text-slate-900 dark:text-white font-bold text-md rounded-xl transition-all shadow-lg shadow-saffron/20 flex items-center justify-center gap-2"
+                  >
+                    <MapPin className="h-5 w-5" /> Show Route
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setStep('booking')}
+                    className="flex-1 py-3 bg-saffron hover:bg-[#e85a28] text-slate-900 dark:text-white font-bold text-md rounded-xl transition-all shadow-lg shadow-saffron/20"
+                  >
+                    Book Darshan Pass
+                  </button>
+                )}
               </div>
             </div>
           )}
