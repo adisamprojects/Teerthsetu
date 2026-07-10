@@ -5,7 +5,7 @@ import {
   MapPin, Clock, Users, QrCode, LogOut, Bell, Compass, Calendar,
   Search, ShieldAlert, HeartHandshake, Hotel, Map, User, CheckCircle,
   CreditCard, ChevronRight, X, Sparkles, Filter, Info, PhoneCall, Star, Phone, Activity, Sun, Moon, Plus, Minus,
-  ShieldCheck, Fingerprint, Smartphone, Cloud, AlertTriangle
+  ShieldCheck, Fingerprint, Smartphone, Cloud, AlertTriangle, RefreshCw
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from 'recharts';
@@ -762,6 +762,7 @@ function TempleDetailsModal({ temple, user, onClose }) {
   const [step, setStep] = useState('details'); // details, booking, aadhaar, payment, ticket
   const [aadhaarNumber, setAadhaarNumber] = useState('');
   const [otp, setOtp] = useState('');
+  const [aadhaarRefId, setAadhaarRefId] = useState(null);
   const [verificationStatus, setVerificationStatus] = useState('idle'); // idle, loading, sent, verifying, success
   const [formData, setFormData] = useState({
     date: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
@@ -848,23 +849,63 @@ function TempleDetailsModal({ temple, user, onClose }) {
     setStep('aadhaar');
   };
 
-  const handleSendOTP = () => {
+  const handleSendOTP = async () => {
     if (aadhaarNumber.length < 14) return; // Including dashes
     setVerificationStatus('loading');
-    setTimeout(() => {
-      setVerificationStatus('sent');
-    }, 1200);
+    
+    try {
+      const baseUrl = window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://teerthsetu.onrender.com';
+      const res = await fetch(baseUrl + '/api/verify/aadhaar/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          aadhaar_number: aadhaarNumber.replace(/\D/g, ''),
+          phone: user?.phone
+        })
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setAadhaarRefId(data.ref_id);
+        setVerificationStatus('sent');
+      } else {
+        alert(data.message || 'Failed to send OTP');
+        setVerificationStatus('idle');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error connecting to verification service');
+      setVerificationStatus('idle');
+    }
   };
 
-  const handleVerifyOTP = () => {
-    if (otp.length !== 6) return;
+  const handleVerifyOTP = async () => {
+    if (otp.length !== 6 || !aadhaarRefId) return;
     setVerificationStatus('verifying');
-    setTimeout(() => {
-      setVerificationStatus('success');
-      setTimeout(() => {
-        setStep('payment');
-      }, 800);
-    }, 1500);
+    
+    try {
+      const baseUrl = window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://teerthsetu.onrender.com';
+      const res = await fetch(baseUrl + '/api/verify/aadhaar/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ref_id: aadhaarRefId, otp })
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setVerificationStatus('success');
+        setTimeout(() => {
+          setStep('payment');
+        }, 800);
+      } else {
+        alert(data.message || 'Invalid OTP');
+        setVerificationStatus('sent');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error verifying OTP');
+      setVerificationStatus('sent');
+    }
   };
 
   const handlePayment = () => {
@@ -1244,7 +1285,7 @@ function TempleDetailsModal({ temple, user, onClose }) {
                 type="submit"
                 className="w-full py-2.5 bg-saffron hover:bg-[#e85a28] text-slate-900 dark:text-white font-bold text-md rounded-xl transition-all shadow-lg mt-2"
               >
-                Proceed to Secure Payment
+                Proceed to Verification & Payment
               </button>
             </form>
           )}
@@ -1280,6 +1321,7 @@ function TempleDetailsModal({ temple, user, onClose }) {
                     <Fingerprint className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
                   </div>
                 </div>
+
 
                 {verificationStatus === 'idle' || verificationStatus === 'loading' ? (
                   <button

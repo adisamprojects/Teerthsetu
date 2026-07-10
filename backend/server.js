@@ -248,7 +248,7 @@ const authorizedAdmins = [
 
 app.post('/api/auth/login', (req, res) => {
   const { email, password, role } = req.body;
-  
+
   if (role === 'admin') {
     if (!authorizedAdmins.includes(email)) {
       return res.status(403).json({ success: false, message: 'Access Denied: Account not authorized for admin portal. Contact management.' });
@@ -285,7 +285,7 @@ app.post('/api/auth/google-login', (req, res) => {
   const { idToken, role, email, name } = req.body;
   const mockEmail = email || 'google-user@example.com';
   const mockName = name || 'Google User';
-  
+
   if (role === 'admin') {
     if (!authorizedAdmins.includes(mockEmail)) {
       return res.status(403).json({ success: false, message: 'Access Denied: Google Account not authorized for admin portal. Contact management.' });
@@ -376,21 +376,109 @@ app.post('/api/devotee/verify-otp', (req, res) => {
   if (!record || record.expires < Date.now()) {
     return res.status(400).json({ success: false, message: 'OTP expired or invalid' });
   }
-  
+
   if (record.otp !== otp) {
     return res.status(400).json({ success: false, message: 'Incorrect OTP' });
   }
 
   delete otpStore[identifier];
 
-  res.json({ 
-    success: true, 
+  res.json({
+    success: true,
     token: `mock-jwt-devotee-${Date.now()}`,
     user: {
       email: email || `${phone}@temple.com`,
       role: 'devotee',
       name: 'Devendra Kumar',
       phone: phone || '+91 9876543210'
+    }
+  });
+});
+
+// 3rd Party Aadhaar Verification (Cashfree API Simulation)
+const aadhaarSessions = {};
+
+app.post('/api/verify/aadhaar/send-otp', async (req, res) => {
+  const { aadhaar_number, phone } = req.body;
+  if (!aadhaar_number || aadhaar_number.replace(/\D/g, '').length !== 12) {
+    return res.status(400).json({ success: false, message: 'Invalid Aadhaar Number' });
+  }
+
+  // Check if live keys are present
+  if (process.env.CASHFREE_CLIENT_ID && process.env.CASHFREE_SECRET) {
+    // In production, call Cashfree API here via Axios
+    // const response = await axios.post('https://sandbox.cashfree.com/verification/offline-aadhaar/otp', { aadhaar_number: aadhaar_number.replace(/\D/g, '') }, { headers: { 'x-client-id': process.env.CASHFREE_CLIENT_ID, 'x-client-secret': process.env.CASHFREE_SECRET }});
+    // return res.json(response.data);
+  }
+
+  // Simulated logic
+  const ref_id = `cf_req_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  
+  aadhaarSessions[ref_id] = {
+    aadhaar_number: aadhaar_number.replace(/\D/g, ''),
+    otp,
+    expires: Date.now() + 10 * 60000 // 10 mins
+  };
+
+  console.log(`[CASHFREE AADHAAR SIMULATION] Ref ID: ${ref_id} | OTP sent to linked mobile: ${otp}`);
+  
+  if (phone && process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
+    try {
+      const twilio = require('twilio');
+      const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+      await client.messages.create({
+        body: `Your TeerthSetu Aadhaar Verification OTP is: ${otp}. Do not share this code.`,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: phone.startsWith('+') ? phone : `+91${phone}`
+      });
+      console.log("Real SMS OTP sent to: %s", phone);
+    } catch (err) {
+      console.error("Twilio SMS error in Aadhaar simulation:", err);
+    }
+  }
+  
+  res.json({ success: true, ref_id, message: 'OTP sent successfully to Aadhaar registered mobile number.' });
+});
+
+app.post('/api/verify/aadhaar/verify-otp', async (req, res) => {
+  const { ref_id, otp } = req.body;
+
+  if (!ref_id || !otp) {
+    return res.status(400).json({ success: false, message: 'ref_id and otp required' });
+  }
+
+  // Check if live keys are present
+  if (process.env.CASHFREE_CLIENT_ID && process.env.CASHFREE_SECRET) {
+    // In production, you would call Cashfree API here via Axios
+    // const response = await axios.post(`https://sandbox.cashfree.com/verification/offline-aadhaar/verify`, { ref_id, otp }, { headers: { 'x-client-id': process.env.CASHFREE_CLIENT_ID, 'x-client-secret': process.env.CASHFREE_SECRET }});
+    // return res.json(response.data);
+  }
+
+  const session = aadhaarSessions[ref_id];
+  if (!session || session.expires < Date.now()) {
+    return res.status(400).json({ success: false, message: 'Session expired or invalid ref_id' });
+  }
+
+  if (session.otp !== otp) {
+    return res.status(400).json({ success: false, message: 'Incorrect OTP' });
+  }
+
+  delete aadhaarSessions[ref_id];
+
+  res.json({
+    success: true,
+    message: 'Aadhaar verified successfully',
+    data: {
+      full_name: 'Verified Devotee',
+      aadhaar_number: `XXXXXXXX${session.aadhaar_number.slice(-4)}`,
+      dob: '1990-01-01',
+      gender: 'M',
+      address: {
+        state: 'Delhi',
+        city: 'New Delhi',
+        pin: '110001'
+      }
     }
   });
 });
