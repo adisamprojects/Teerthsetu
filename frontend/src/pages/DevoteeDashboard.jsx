@@ -629,8 +629,9 @@ function ExploreView({ temples, setActiveTab, user, templesLimit = 3 }) {
         </div>
       </div>
 
-      <div className="space-y-6">
 
+      <div className="space-y-6 mt-8">
+        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-4 px-2">Famous Temples</h2>
         {/* Temple Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTemples.map(t => (

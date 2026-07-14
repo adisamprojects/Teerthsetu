@@ -77,46 +77,566 @@ try {
 
 // In-Memory Database
 const temples = [
-  { _id: '1', name: 'Tirupati Venkateswara', location: 'Andhra Pradesh', dailyLimit: 80000, currentCapacity: 75000, waitTime: 45, crowdLevel: 'High', image: 'https://images.unsplash.com/photo-1600100397608-f010e42edb7a?auto=format&fit=crop&w=600&q=80', history: 'An ancient hill temple dedicated to Lord Venkateswara, built around 300 AD.', timings: '3:00 AM - 11:00 PM', dressCode: 'Traditional Indian Wear (Dhoti/Saree)', facilities: ['Prasadam', 'Wheelchairs', 'Locker Room', 'Medical Camp'], lat: 13.6833, lon: 79.3472, weather: '26°C, Heavy Rain', weatherAlert: 'Red Alert: Heavy rains & landslides expected. Avoid Ghat roads at night.' },
-  { _id: '2', name: 'Kedarnath Temple', location: 'Uttarakhand', dailyLimit: 20000, currentCapacity: 12000, waitTime: 20, crowdLevel: 'Moderate', image: 'https://images.unsplash.com/photo-1596701062351-8c2c14d1fdd0?auto=format&fit=crop&w=600&q=80', history: 'One of the twelve Jyotirlingas, located in the Himalayas and built by Pandavas.', timings: '6:00 AM - 7:00 PM', dressCode: 'Warm decent clothing', facilities: ['Medical Camp', 'Helipad', 'Shelter Camps'] },
-  { _id: '3', name: 'Kashi Vishwanath', location: 'Uttar Pradesh', dailyLimit: 50000, currentCapacity: 48000, waitTime: 60, crowdLevel: 'High', image: 'https://images.unsplash.com/photo-1627664819818-e147d6221422?auto=format&fit=crop&w=600&q=80', history: 'Situated on the western bank of holy river Ganga, this Jyotirlinga is centuries old.', timings: '4:00 AM - 11:00 PM', dressCode: 'Decent casuals/traditional', facilities: ['Queue Shelters', 'Drinking Water', 'Wheelchairs'] },
-  { _id: '4', name: 'Vaishno Devi', location: 'Jammu & Kashmir', dailyLimit: 40000, currentCapacity: 25000, waitTime: 15, crowdLevel: 'Low', image: 'https://images.unsplash.com/photo-1612438214708-f428a707dd4e?auto=format&fit=crop&w=600&q=80', history: 'A holy cave temple situated in Trikuta Hills, dedicated to Vaishno Devi Durga.', timings: '24 Hours Open', dressCode: 'Comfortable modest clothes', facilities: ['Bhojanalayas', 'Battery Cars', 'Cloak Rooms', 'Porters'] },
-  { _id: '5', name: 'Sabarimala Temple', location: 'Kerala', dailyLimit: 90000, currentCapacity: 85000, waitTime: 90, crowdLevel: 'High', image: 'https://images.unsplash.com/photo-1545244197-a61f4fa9b6b7?auto=format&fit=crop&w=600&q=80', history: 'Dedicated to Lord Ayyappa, situated atop a hill surrounded by dense forests.', timings: '4:00 AM - 10:00 PM', dressCode: 'Black/Blue traditional attire', facilities: ['Prasadam', 'Rest Rooms', 'First Aid'] },
-  { _id: '6', name: 'Somnath Temple', location: 'Gujarat', dailyLimit: 30000, currentCapacity: 10000, waitTime: 10, crowdLevel: 'Low', image: 'https://images.unsplash.com/photo-1569470451072-68314f596aec?auto=format&fit=crop&w=600&q=80', history: 'Reconstructed several times, this temple sits at the shore of the Arabian Sea.', timings: '6:00 AM - 9:30 PM', dressCode: 'Modest wear', facilities: ['Light & Sound Show', 'Museum', 'Guest Houses'] },
-  { _id: '7', name: 'Dwarkadhish Temple', location: 'Gujarat', dailyLimit: 25000, currentCapacity: 22000, waitTime: 35, crowdLevel: 'Moderate', image: 'https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=600&q=80', history: 'Dedicated to Lord Krishna, known as Jagat Mandir, built over 2000 years ago.', timings: '6:30 AM - 9:30 PM', dressCode: 'Traditional Indian', facilities: ['Locker facilities', 'Prasadam counter'] },
-  { _id: '8', name: 'Jagannath Puri', location: 'Odisha', dailyLimit: 60000, currentCapacity: 50000, waitTime: 50, crowdLevel: 'High', image: 'https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?auto=format&fit=crop&w=600&q=80', history: 'Famous for its annual Ratha Yatra, dedicated to Lord Jagannath, Balabhadra and Subhadra.', timings: '5:00 AM - 11:00 PM', dressCode: 'Traditional clothes', facilities: ['Ananda Bazar (Food)', 'Shoe Stand', 'Rest Areas'] },
-  { _id: '9', name: 'Meenakshi Temple', location: 'Tamil Nadu', dailyLimit: 45000, currentCapacity: 20000, waitTime: 15, crowdLevel: 'Low', image: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=600&q=80', history: 'A historic Hindu temple on the southern bank of Vaigai river in Madurai.', timings: '5:00 AM - 10:00 PM', dressCode: 'Full length covering apparel', facilities: ['Cloak Rooms', 'Guide services', 'Drinking Water'] },
-  { _id: '10', name: 'Badrinath Temple', location: 'Uttarakhand', dailyLimit: 15000, currentCapacity: 14000, waitTime: 40, crowdLevel: 'High', image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=600&q=80', history: 'Part of Char Dham pilgrimage, dedicated to Lord Vishnu along the Alaknanda river.', timings: '4:30 AM - 9:00 PM', dressCode: 'Warm modest clothing', facilities: ['Thermal Springs Bath', 'Medical Station'] },
-  { _id: '30', name: 'Tirumala Venkateswara Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 68, crowdLevel: 'High', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.284294898890614, lon: 79.76557518199166 },
-  { _id: '31', name: 'Sri Padmavathi Ammavari Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 30, crowdLevel: 'Moderate', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.486150223203268, lon: 80.05846632278082 },
-  { _id: '32', name: 'Sri Govindaraja Swamy Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 28, crowdLevel: 'Moderate', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 17.053772438007087, lon: 80.95470493572432 },
-  { _id: '33', name: 'Kapila Theertham (Sri Kapileswara Swamy Temple)', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 62, crowdLevel: 'High', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Kapilatheertam.jpg/960px-Kapilatheertam.jpg', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 13.65638889, lon: 79.42083333 },
-  { _id: '34', name: 'Kodandarama Swamy Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 45, crowdLevel: 'High', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 15.58125841171118, lon: 80.09359467669702 },
-  { _id: '35', name: 'Srikalahasteeswara Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 33, crowdLevel: 'Moderate', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.465328266662542, lon: 80.94955125812291 },
-  { _id: '36', name: 'Mallikarjuna Swamy Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 47, crowdLevel: 'High', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.95878928334702, lon: 80.69737179008656 },
-  { _id: '37', name: 'Yaganti Uma Maheswara Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 57, crowdLevel: 'High', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.781557611724732, lon: 81.43043756436005 },
-  { _id: '38', name: 'Ahobilam Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 59, crowdLevel: 'High', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.59044499604619, lon: 81.26191706575545 },
-  { _id: '39', name: 'Mahanandi Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 55, crowdLevel: 'High', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 15.826068399987099, lon: 81.35436196247824 },
-  { _id: '40', name: 'Kanaka Durga Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 42, crowdLevel: 'High', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Kanakadurga_Temple_gopuram.jpg/960px-Kanakadurga_Temple_gopuram.jpg', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.51902778, lon: 80.62149444 },
-  { _id: '41', name: 'Mangalagiri Lakshmi Narasimha Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 64, crowdLevel: 'High', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.07273617258954, lon: 80.61990694719115 },
-  { _id: '42', name: 'Amararama Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 53, crowdLevel: 'High', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.03742341632649, lon: 81.28222385551726 },
-  { _id: '43', name: 'Annavaram Satyanarayana Swamy Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 38, crowdLevel: 'Moderate', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.20574070028309, lon: 80.16249210475165 },
-  { _id: '44', name: 'Draksharamam Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 44, crowdLevel: 'High', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 17.178901258565194, lon: 81.2694758139098 },
-  { _id: '45', name: 'Kumararama Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 38, crowdLevel: 'Moderate', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 15.711966742178594, lon: 80.80737377723916 },
-  { _id: '46', name: 'Ksheerarama Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 53, crowdLevel: 'High', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.23548678821196, lon: 79.88397862096971 },
-  { _id: '47', name: 'Somarama Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 49, crowdLevel: 'High', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.06953008966357, lon: 81.29265385688423 },
-  { _id: '48', name: 'Simhachalam Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 12, crowdLevel: 'Low', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.498027634749057, lon: 80.84215172855333 },
-  { _id: '49', name: 'Appikonda Someswara Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 54, crowdLevel: 'High', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 17.054872287626942, lon: 79.91616331631438 },
-  { _id: '50', name: 'Sri Kurmam Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 67, crowdLevel: 'High', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.203835466122378, lon: 81.22835928478698 },
-  { _id: '51', name: 'Arasavalli Sun Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 22, crowdLevel: 'Moderate', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 17.295347561605126, lon: 80.27902384284862 },
-  { _id: '52', name: 'Dwaraka Tirumala Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 38, crowdLevel: 'Moderate', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.778725067760202, lon: 81.22529752340373 },
-  { _id: '53', name: 'Talpagiri Ranganatha Swamy Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 58, crowdLevel: 'High', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 15.78703181330781, lon: 79.78707725697176 },
-  { _id: '54', name: 'Lepakshi Veerabhadra Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 31, crowdLevel: 'Moderate', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 17.151827835173567, lon: 80.57635845570105 },
-  { _id: '55', name: 'Bugga Ramalingeswara Swamy Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 35, crowdLevel: 'Moderate', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.527722837544108, lon: 79.77853046941058 },
-  { _id: '56', name: 'Chintala Venkataramana Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 36, crowdLevel: 'Moderate', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 17.17105228302918, lon: 79.61594705166327 },
-  { _id: '57', name: 'Sri Prasanna Venkateswara Swamy Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 18, crowdLevel: 'Low', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.59559797333247, lon: 79.84782603221484 },
-  { _id: '58', name: 'Ontimitta Sri Kodandarama Swamy Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 44, crowdLevel: 'High', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.73429528921518, lon: 80.7637758067713 },
-  { _id: '59', name: 'Ryali Jaganmohini Kesava Swamy Temple', location: 'Andhra Pradesh', dailyLimit: 30000, currentCapacity: 25000, waitTime: 24, crowdLevel: 'Moderate', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hindu_Swastika.svg/800px-Hindu_Swastika.svg.png', history: 'A historic temple located in Andhra Pradesh.', timings: '6:00 AM - 9:00 PM', dressCode: 'Traditional / Modest Wear', facilities: ['Prasadam', 'Wheelchairs'], lat: 16.872998714594186, lon: 81.59319271408475 }
+  {
+    "_id": "1",
+    "name": "Tirumala Venkateswara Temple",
+    "location": "Tirupati, Andhra Pradesh",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 30,
+    "crowdLevel": "Moderate",
+    "rating": 5,
+    "image": "/image/andhra.jpg",
+    "history": "Presiding Deity: Lord Venkateswara (Vishnu)",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 13.6833,
+    "lon": 79.3475
+  },
+  {
+    "_id": "2",
+    "name": "Parshuram Kund",
+    "location": "Lohit District, Arunachal Pradesh",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 31,
+    "crowdLevel": "Moderate",
+    "rating": 4.8,
+    "image": "/image/arunalchal pradesh.jpg",
+    "history": "Presiding Deity: Lord Parashurama",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 27.8767,
+    "lon": 96.3472
+  },
+  {
+    "_id": "3",
+    "name": "Kamakhya Temple",
+    "location": "Guwahati, Assam",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 13,
+    "crowdLevel": "Low",
+    "rating": 5,
+    "image": "/image/assam.jpg",
+    "history": "Presiding Deity: Goddess Kamakhya",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 26.167,
+    "lon": 91.7061
+  },
+  {
+    "_id": "4",
+    "name": "Mahabodhi Temple",
+    "location": "Bodh Gaya, Bihar",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 60,
+    "crowdLevel": "High",
+    "rating": 4.4,
+    "image": "/image/bihar.jpg",
+    "history": "Presiding Deity: Lord Buddha",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 24.6959,
+    "lon": 84.9912
+  },
+  {
+    "_id": "5",
+    "name": "Maa Bambleshwari Temple",
+    "location": "Dongargarh, Chhattisgarh",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 34,
+    "crowdLevel": "Moderate",
+    "rating": 4.6,
+    "image": "/image/chatishgarh.jpg",
+    "history": "Presiding Deity: Goddess Bambleshwari",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 21.1895,
+    "lon": 80.4551
+  },
+  {
+    "_id": "6",
+    "name": "Shri Mangeshi Temple",
+    "location": "Ponda, Goa",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 65,
+    "crowdLevel": "High",
+    "rating": 4.7,
+    "image": "/image/goa.jpg",
+    "history": "Presiding Deity: Lord Mangesh (Shiva)",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 15.4414,
+    "lon": 73.9686
+  },
+  {
+    "_id": "7",
+    "name": "Somnath Temple",
+    "location": "Prabhas Patan, Gujarat",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 44,
+    "crowdLevel": "Moderate",
+    "rating": 4,
+    "image": "/image/gujarath.jpg",
+    "history": "Presiding Deity: Lord Shiva",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 20.888,
+    "lon": 70.401
+  },
+  {
+    "_id": "8",
+    "name": "Mata Mansa Devi Temple",
+    "location": "Panchkula, Haryana",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 66,
+    "crowdLevel": "High",
+    "rating": 4.6,
+    "image": "/image/haryana.jpg",
+    "history": "Presiding Deity: Goddess Mansa Devi",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 30.7259,
+    "lon": 76.8741
+  },
+  {
+    "_id": "9",
+    "name": "Jwala Ji Temple",
+    "location": "Kangra, Himachal Pradesh",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 44,
+    "crowdLevel": "Moderate",
+    "rating": 4.1,
+    "image": "/image/himachal pradesh.jpg",
+    "history": "Presiding Deity: Goddess Jwala Devi",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 31.8763,
+    "lon": 76.3262
+  },
+  {
+    "_id": "10",
+    "name": "Baidyanath Temple",
+    "location": "Deoghar, Jharkhand",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 55,
+    "crowdLevel": "High",
+    "rating": 4,
+    "image": "/image/jharkhnada.jpg",
+    "history": "Presiding Deity: Lord Shiva",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 24.4927,
+    "lon": 86.6997
+  },
+  {
+    "_id": "11",
+    "name": "Kukke Subramanya Temple",
+    "location": "Subramanya, Karnataka",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 29,
+    "crowdLevel": "Moderate",
+    "rating": 4.2,
+    "image": "/image/karnatka.jpg",
+    "history": "Presiding Deity: Lord Subramanya",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 12.6644,
+    "lon": 75.6171
+  },
+  {
+    "_id": "12",
+    "name": "Sabarimala Temple",
+    "location": "Pathanamthitta, Kerala",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 51,
+    "crowdLevel": "High",
+    "rating": 4.3,
+    "image": "/image/kerala.jpg",
+    "history": "Presiding Deity: Lord Ayyappa",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 9.4376,
+    "lon": 77.0805
+  },
+  {
+    "_id": "13",
+    "name": "Mahakaleshwar Jyotirlinga",
+    "location": "Ujjain, Madhya Pradesh",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 46,
+    "crowdLevel": "High",
+    "rating": 4.6,
+    "image": "/image/madhya pradesh.jpg",
+    "history": "Presiding Deity: Lord Shiva",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 23.1827,
+    "lon": 75.7682
+  },
+  {
+    "_id": "14",
+    "name": "Shirdi Sai Baba Temple",
+    "location": "Shirdi, Maharashtra",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 50,
+    "crowdLevel": "High",
+    "rating": 4.3,
+    "image": "/image/maharastra.jpg",
+    "history": "Presiding Deity: Sai Baba",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 19.7668,
+    "lon": 74.477
+  },
+  {
+    "_id": "15",
+    "name": "Shri Govindajee Temple",
+    "location": "Imphal, Manipur",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 66,
+    "crowdLevel": "High",
+    "rating": 5,
+    "image": "/image/manipur.jpg",
+    "history": "Presiding Deity: Lord Krishna",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 24.7983,
+    "lon": 93.9439
+  },
+  {
+    "_id": "16",
+    "name": "Nartiang Durga Temple",
+    "location": "Nartiang, Meghalaya",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 33,
+    "crowdLevel": "Moderate",
+    "rating": 4.8,
+    "image": "/image/megalaya.jpg",
+    "history": "Presiding Deity: Goddess Durga",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 25.5786,
+    "lon": 92.2227
+  },
+  {
+    "_id": "17",
+    "name": "Solomon's Temple",
+    "location": "Aizawl, Mizoram",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 13,
+    "crowdLevel": "Low",
+    "rating": 4.6,
+    "image": "/image/mizoram.jpg",
+    "history": "Presiding Deity: Christian Worship Centre",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 23.7388,
+    "lon": 92.7475
+  },
+  {
+    "_id": "18",
+    "name": "Shri Dimapur Kalibari",
+    "location": "Dimapur, Nagaland",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 37,
+    "crowdLevel": "Moderate",
+    "rating": 4.1,
+    "image": "/image/nagaland.jpg",
+    "history": "Presiding Deity: Goddess Kali",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 25.908,
+    "lon": 93.7275
+  },
+  {
+    "_id": "19",
+    "name": "Jagannath Temple",
+    "location": "Puri, Odisha",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 55,
+    "crowdLevel": "High",
+    "rating": 4.2,
+    "image": "/image/odisha.jpg",
+    "history": "Presiding Deity: Lord Jagannath",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 19.8049,
+    "lon": 85.8179
+  },
+  {
+    "_id": "20",
+    "name": "Durgiana Temple",
+    "location": "Amritsar, Punjab",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 16,
+    "crowdLevel": "Low",
+    "rating": 4.3,
+    "image": "/image/punjab.jpg",
+    "history": "Presiding Deity: Goddess Durga & Lord Vishnu",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 31.6329,
+    "lon": 74.8679
+  },
+  {
+    "_id": "21",
+    "name": "Khatu Shyam Ji Temple",
+    "location": "Sikar, Rajasthan",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 50,
+    "crowdLevel": "High",
+    "rating": 4.9,
+    "image": "/image/rajasthan.jpg",
+    "history": "Presiding Deity: Khatu Shyam Ji",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 27.3687,
+    "lon": 75.4023
+  },
+  {
+    "_id": "22",
+    "name": "Kirateshwar Mahadev Temple",
+    "location": "Legship, Sikkim",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 64,
+    "crowdLevel": "High",
+    "rating": 4.8,
+    "image": "/image/sikkim.jpg",
+    "history": "Presiding Deity: Lord Shiva",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 27.2796,
+    "lon": 88.2778
+  },
+  {
+    "_id": "23",
+    "name": "Meenakshi Amman Temple",
+    "location": "Madurai, Tamil Nadu",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 13,
+    "crowdLevel": "Low",
+    "rating": 4.8,
+    "image": "/image/tamil.jpg",
+    "history": "Presiding Deity: Goddess Meenakshi",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 9.9195,
+    "lon": 78.1193
+  },
+  {
+    "_id": "24",
+    "name": "Yadadri Lakshmi Narasimha Temple",
+    "location": "Yadagirigutta, Telangana",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 52,
+    "crowdLevel": "High",
+    "rating": 4.8,
+    "image": "/image/telengana.jpg",
+    "history": "Presiding Deity: Lord Narasimha",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 17.5855,
+    "lon": 78.9436
+  },
+  {
+    "_id": "25",
+    "name": "Tripura Sundari Temple",
+    "location": "Udaipur, Tripura",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 48,
+    "crowdLevel": "High",
+    "rating": 4.6,
+    "image": "/image/tripura.jpg",
+    "history": "Presiding Deity: Goddess Tripura Sundari",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 23.5147,
+    "lon": 91.4984
+  },
+  {
+    "_id": "26",
+    "name": "Kashi Vishwanath Temple",
+    "location": "Varanasi, Uttar Pradesh",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 48,
+    "crowdLevel": "High",
+    "rating": 5,
+    "image": "/image/uttrapradesh.jpg",
+    "history": "Presiding Deity: Lord Shiva",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 25.3109,
+    "lon": 83.0107
+  },
+  {
+    "_id": "27",
+    "name": "Kedarnath Temple",
+    "location": "Rudraprayag, Uttarakhand",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 55,
+    "crowdLevel": "High",
+    "rating": 4.9,
+    "image": "/image/uttrakand.jpg",
+    "history": "Presiding Deity: Lord Shiva",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 30.7352,
+    "lon": 79.0669
+  },
+  {
+    "_id": "28",
+    "name": "Dakshineswar Kali Temple",
+    "location": "Kolkata, West Bengal",
+    "dailyLimit": 30000,
+    "currentCapacity": 25000,
+    "waitTime": 31,
+    "crowdLevel": "Moderate",
+    "rating": 4.4,
+    "image": "/image/west bengal.jpg",
+    "history": "Presiding Deity: Goddess Kali",
+    "timings": "6:00 AM - 9:00 PM",
+    "dressCode": "Traditional / Modest Wear",
+    "facilities": [
+      "Prasadam",
+      "Wheelchairs"
+    ],
+    "lat": 22.6548,
+    "lon": 88.3585
+  }
 ];
 
 let globalState = {
