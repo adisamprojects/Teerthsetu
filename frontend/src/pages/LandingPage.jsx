@@ -338,12 +338,12 @@ export default function LandingPage() {
                   </div>
 
                   <ul className={`space-y-3 text-sm font-medium text-left ${isDarkMode ? 'text-[#D1D5DB]' : 'text-slate-700'}`} style={{ fontFamily: "'Inter', sans-serif" }}>
-                    <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#FF7A1A] shadow-[0_0_8px_#FF7A1A]" /> Discover sacred temples across India</li>
-                    <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#FF7A1A] shadow-[0_0_8px_#FF7A1A]" /> AI crowd forecasting & wait time estimates</li>
-                    <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#FF7A1A] shadow-[0_0_8px_#FF7A1A]" /> Book priority Darshan & Aarti slots</li>
-                    <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#FF7A1A] shadow-[0_0_8px_#FF7A1A]" /> Generate unified QR passes with instant verification</li>
-                    <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#FF7A1A] shadow-[0_0_8px_#FF7A1A]" /> Integrated travel, transit & hotel planning</li>
-                    <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#FF7A1A] shadow-[0_0_8px_#FF7A1A]" /> Elderly & Divyang wheelchair assistance</li>
+                    <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#FF7A1A] shadow-[0_0_8px_#FF7A1A]" /> Discover pilgrimage &amp; heritage destinations across India</li>
+                    <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#FF7A1A] shadow-[0_0_8px_#FF7A1A]" /> AI-powered itinerary &amp; travel planning</li>
+                    <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#FF7A1A] shadow-[0_0_8px_#FF7A1A]" /> Book train, bus &amp; flight journeys</li>
+                    <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#FF7A1A] shadow-[0_0_8px_#FF7A1A]" /> Find and book hotels &amp; accommodations</li>
+                    <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#FF7A1A] shadow-[0_0_8px_#FF7A1A]" /> Explore nearby cultural &amp; heritage experiences</li>
+                    <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#FF7A1A] shadow-[0_0_8px_#FF7A1A]" /> Get personalized AI travel recommendations</li>
                   </ul>
                 </div>
 
