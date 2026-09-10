@@ -290,7 +290,7 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className={`text-4xl md:text-6xl font-bold mb-2 tracking-tight transition-colors ${isDarkMode ? 'text-white' : 'text-[#0F172A] filter drop-shadow-[0_2px_12px_rgba(255,255,255,0.45)] drop-shadow-[0_2px_6px_rgba(0,0,0,0.15)]'
+              className={`text-4xl md:text-6xl font-bold mb-8 tracking-tight transition-colors ${isDarkMode ? 'text-white' : 'text-[#0F172A] filter drop-shadow-[0_2px_12px_rgba(255,255,255,0.45)] drop-shadow-[0_2px_6px_rgba(0,0,0,0.15)]'
                 }`}
             >
               Welcome to <span className={`filter ${isDarkMode
@@ -298,17 +298,6 @@ export default function LandingPage() {
                   : 'text-[#C2410C] drop-shadow-[0_2px_12px_rgba(255,255,255,0.45)] drop-shadow-[0_2px_6px_rgba(0,0,0,0.15)]'
                 }`}>TeerthSetu</span>
             </motion.h2>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-              className={`text-lg md:text-xl max-w-2xl mx-auto mb-8 tracking-wide leading-relaxed transition-colors ${isDarkMode ? 'text-slate-200 font-light' : 'text-[#0F172A] font-bold filter drop-shadow-[0_0_12px_rgba(255,255,255,1)] drop-shadow-[0_0_4px_rgba(255,255,255,1)]'
-                }`}
-              style={{ fontFamily: "'Playfair Display', serif" }}
-            >
-              AI-Powered smart queue scheduling, live crowd telemetry, and resource balancing for India's historic pilgrimage centers.
-            </motion.p>
 
             {/* Devotee Portal Card (Premium Glassmorphism) */}
             <div className="max-w-xl mx-auto">
