@@ -16,13 +16,13 @@ const features = [
   { icon: <MapIcon className="h-8 w-8 text-saffron" />, title: "Travel Planning", desc: "AI-generated optimal routes for multi-temple journeys." },
   { icon: <BuildingOfficeIcon className="h-8 w-8 text-saffron" />, title: "Hotel Booking", desc: "Integrated stays customized for your spiritual path." },
   { icon: <UserGroupIcon className="h-8 w-8 text-saffron" />, title: "Elderly Assistance", desc: "Priority wheelchairs and volunteer escorts for seniors." },
-  { icon: <ChartPieIcon className="h-8 w-8 text-saffron" />, title: "Temple Analytics", desc: "Live telemetry dashboard for temple administrators." }
+  { icon: <ChartPieIcon className="h-8 w-8 text-saffron" />, title: "Live Queue Telemetry", desc: "Real-time updates on temple darshan waiting times and footfall." }
 ];
 
 const testimonials = [
   { name: "Rahul S.", text: "TeerthSethu transformed our Tirupati trip. The AI wait time prediction was incredibly accurate!" },
   { name: "Priya M.", text: "Booking a wheelchair for my grandmother was seamless. The volunteer was waiting for us at the gate." },
-  { name: "Temple Trust, Varanasi", text: "The Admin Analytics dashboard has reduced our parking congestion by 40%." }
+  { name: "Ananya R., Bengaluru", text: "The dynamic queue management and clean digital pass made our Kashi Yatra truly peaceful." }
 ];
 
 
@@ -310,93 +310,52 @@ export default function LandingPage() {
               AI-Powered smart queue scheduling, live crowd telemetry, and resource balancing for India's historic pilgrimage centers.
             </motion.p>
 
-            {/* Role Options Cards (Premium Glassmorphism) */}
-            <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-
-              {/* Devotee Portal Card */}
+            {/* Devotee Portal Card (Premium Glassmorphism) */}
+            <div className="max-w-xl mx-auto">
               <motion.div
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-                whileHover={{ y: -8 }}
-                className={`group relative rounded-[20px] backdrop-blur-xl border p-8 flex flex-col h-full transition-all duration-300 ${isDarkMode
-                    ? 'bg-slate-900/60 border-slate-800 hover:border-[#FF7A1A]/40 shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:shadow-[0_16px_48px_rgba(255,122,26,0.15)] hover:bg-slate-800/60'
-                    : 'bg-white/40 border-white/50 hover:border-[#FF7A1A]/40 shadow-xl hover:shadow-[0_16px_48px_rgba(255,122,26,0.15)]'
+                whileHover={{ y: -6 }}
+                className={`group relative rounded-[24px] backdrop-blur-xl border p-8 md:p-10 flex flex-col h-full transition-all duration-300 shadow-2xl ${isDarkMode
+                    ? 'bg-slate-900/70 border-slate-800 hover:border-[#FF7A1A]/50 shadow-[0_8px_32px_rgba(0,0,0,0.4)] hover:shadow-[0_16px_48px_rgba(255,122,26,0.2)] hover:bg-slate-800/70'
+                    : 'bg-white/60 border-white/70 hover:border-[#FF7A1A]/50 shadow-xl hover:shadow-[0_16px_48px_rgba(255,122,26,0.2)]'
                   }`}
               >
-                <div className="absolute top-0 right-0 w-24 h-24 bg-[#D4AF37]/5 rounded-full blur-2xl" />
-                <div className="mb-6 relative z-10">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-6">
-                    <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center">
-                      <img src="/devotee_icon.png" alt="Devotee" className="w-full h-full object-contain scale-[2]" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="mb-8 relative z-10">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-14 h-14 flex-shrink-0 flex items-center justify-center bg-[#FF7A1A]/10 rounded-2xl border border-[#FF7A1A]/20">
+                      <img src="/devotee_icon.png" alt="Devotee" className="w-10 h-10 object-contain" />
                     </div>
-                    <h3 className={`text-2xl font-semibold flex flex-wrap items-center gap-3 ${isDarkMode ? 'text-white' : 'text-slate-900'}`} style={{ fontFamily: "'Poppins', sans-serif" }}>
-                      Devotee Portal <span className="text-[10px] px-2 py-1 rounded-full bg-[#FF7A1A]/20 text-[#FF7A1A] font-bold tracking-widest uppercase" style={{ fontFamily: "'Inter', sans-serif" }}>Pilgrims</span>
-                    </h3>
+                    <div>
+                      <h3 className={`text-2xl font-bold flex items-center gap-3 ${isDarkMode ? 'text-white' : 'text-slate-900'}`} style={{ fontFamily: "'Poppins', sans-serif" }}>
+                        Devotee Portal
+                        <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#FF7A1A]/20 text-[#FF7A1A] font-bold tracking-wider uppercase" style={{ fontFamily: "'Inter', sans-serif" }}>Pilgrim Access</span>
+                      </h3>
+                      <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Smart pilgrimage planning & divine darshan passes</p>
+                    </div>
                   </div>
-                  <ul className={`space-y-2 text-sm font-light text-left ${isDarkMode ? 'text-[#D1D5DB]' : 'text-slate-600'}`} style={{ fontFamily: "'Inter', sans-serif" }}>
-                    <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-[#FF7A1A]" /> Discover holy shrines</li>
-                    <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-[#FF7A1A]" /> AI crowd prediction</li>
-                    <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-[#FF7A1A]" /> Book priority Darshan slots</li>
-                    <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-[#FF7A1A]" /> Generate QR tickets</li>
-                    <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-[#FF7A1A]" /> Travel & hotel planning</li>
-                    <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-[#FF7A1A]" /> Elderly & Divyang assistance</li>
-                    <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-[#FF7A1A]" /> Real-time notifications</li>
+
+                  <ul className={`space-y-3 text-sm font-medium text-left ${isDarkMode ? 'text-[#D1D5DB]' : 'text-slate-700'}`} style={{ fontFamily: "'Inter', sans-serif" }}>
+                    <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#FF7A1A] shadow-[0_0_8px_#FF7A1A]" /> Discover sacred temples across India</li>
+                    <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#FF7A1A] shadow-[0_0_8px_#FF7A1A]" /> AI crowd forecasting & wait time estimates</li>
+                    <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#FF7A1A] shadow-[0_0_8px_#FF7A1A]" /> Book priority Darshan & Aarti slots</li>
+                    <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#FF7A1A] shadow-[0_0_8px_#FF7A1A]" /> Generate unified QR passes with instant verification</li>
+                    <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#FF7A1A] shadow-[0_0_8px_#FF7A1A]" /> Integrated travel, transit & hotel planning</li>
+                    <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#FF7A1A] shadow-[0_0_8px_#FF7A1A]" /> Elderly & Divyang wheelchair assistance</li>
                   </ul>
                 </div>
 
-                <div className="mt-auto pt-6 relative z-10">
+                <div className="mt-auto pt-4 relative z-10">
                   <button
-                    onClick={() => navigate('/auth?role=devotee')}
-                    className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-[#FF7A1A] to-[#D4AF37] hover:brightness-110 shadow-[0_0_20px_rgba(255,122,26,0.3)] group-hover:shadow-[0_0_30px_rgba(255,122,26,0.5)] transition-all duration-300 flex items-center justify-center gap-2"
+                    onClick={() => navigate('/auth')}
+                    className="w-full py-4 rounded-xl font-bold text-white bg-gradient-to-r from-[#FF7A1A] via-[#E85A28] to-[#D4AF37] hover:brightness-110 shadow-[0_0_25px_rgba(255,122,26,0.35)] group-hover:shadow-[0_0_35px_rgba(255,122,26,0.5)] transition-all duration-300 flex items-center justify-center gap-3 text-lg"
                   >
-                    Continue as Devotee <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    Enter Devotee Portal <ArrowRight className="h-5 w-5 group-hover:translate-x-1.5 transition-transform" />
                   </button>
                 </div>
               </motion.div>
-
-              {/* Temple Admin Portal Card */}
-              <motion.div
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-                whileHover={{ y: -8 }}
-                className={`group relative rounded-[20px] backdrop-blur-xl border p-8 flex flex-col h-full transition-all duration-300 ${isDarkMode
-                    ? 'bg-slate-900/60 border-slate-800 hover:border-emerald-500/40 shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:shadow-[0_16px_48px_rgba(16,185,129,0.15)] hover:bg-slate-800/60'
-                    : 'bg-white/40 border-white/50 hover:border-emerald-500/40 shadow-xl hover:shadow-[0_16px_48px_rgba(16,185,129,0.15)]'
-                  }`}
-              >
-                <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl" />
-                <div className="mb-6 relative z-10">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-6">
-                    <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center">
-                      <img src="/admin_icon.png" alt="Admin" className="w-full h-full object-contain scale-[1.7]" />
-                    </div>
-                    <h3 className={`text-2xl font-semibold flex flex-wrap items-center gap-3 ${isDarkMode ? 'text-white' : 'text-slate-900'}`} style={{ fontFamily: "'Poppins', sans-serif" }}>
-                      Temple Admin <span className="text-[10px] px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-500 font-bold tracking-widest uppercase" style={{ fontFamily: "'Inter', sans-serif" }}>Trusts</span>
-                    </h3>
-                  </div>
-                  <ul className={`space-y-2 text-sm font-light text-left ${isDarkMode ? 'text-[#D1D5DB]' : 'text-slate-600'}`} style={{ fontFamily: "'Inter', sans-serif" }}>
-                    <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Temple slot management</li>
-                    <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Walk-in ticket generation</li>
-                    <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> QR ticket verification</li>
-                    <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Live crowd monitoring</li>
-                    <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> AI analytics dashboard</li>
-                    <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Resource planning</li>
-                    <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Volunteer & parking management</li>
-                  </ul>
-                </div>
-
-                <div className="mt-auto pt-6 relative z-10">
-                  <button
-                    onClick={() => navigate('/auth?role=admin')}
-                    className="w-full py-3 rounded-xl font-semibold text-white bg-emerald-600 hover:bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)] group-hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all duration-300 flex items-center justify-center gap-2"
-                  >
-                    Admin Login <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                </div>
-              </motion.div>
-
             </div>
           </div>
         </section>

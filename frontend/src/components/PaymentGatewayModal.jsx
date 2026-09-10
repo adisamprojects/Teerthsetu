@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, CreditCard, Lock, Smartphone, Building2, Wallet, 
-  CheckCircle, AlertCircle, ArrowLeft, X, Sparkles, RefreshCw, Copy, Check
+  CheckCircle, AlertCircle, ArrowLeft, X, Sparkles, RefreshCw, Copy, Check,
+  MessageSquare, Phone, Timer
 } from 'lucide-react';
 import TicketQR from './TicketQR';
 
@@ -13,17 +14,17 @@ export default function PaymentGatewayModal({
   orderDetails = {}, 
   onSuccess 
 }) {
-  const [payMethod, setPayMethod] = useState('upi'); // upi, card, netbanking, wallet
-  const [phase, setPhase] = useState('selection'); // selection, otp_challenge, processing, success
+  const [payMethod, setPayMethod] = useState('UPI'); // UPI, CARD, NETBANKING, WALLET
+  const [phase, setPhase] = useState('otp_challenge'); // otp_challenge (default as requested), selection, processing, success
   const [copiedUpi, setCopiedUpi] = useState(false);
   const [upiId, setUpiId] = useState('');
   
   // Card state
   const [cardForm, setCardForm] = useState({
-    number: '',
-    expiry: '',
-    cvv: '',
-    name: ''
+    number: '4532 8901 2345 6789',
+    expiry: '08/28',
+    cvv: '888',
+    name: orderDetails.guestName || orderDetails.name || 'Devotee Pilgrim'
   });
 
   // NetBanking state
@@ -33,15 +34,34 @@ export default function PaymentGatewayModal({
   const [bankOtp, setBankOtp] = useState('');
   const [otpError, setOtpError] = useState('');
   const [processingText, setProcessingText] = useState('Connecting to Bank Gateway...');
+  const [timer, setTimer] = useState(60);
+  const [otpSentToast, setOtpSentToast] = useState(true);
 
-  // Reset modal state when opened/closed
+  // Phone number resolution
+  const devoteePhone = orderDetails.phone || '+91 98765 43210';
+  const maskedPhone = devoteePhone.length >= 10 
+    ? devoteePhone.slice(0, 3) + ' •••• ••• ' + devoteePhone.slice(-4)
+    : devoteePhone;
+
+  // Reset modal state when opened/closed — Defaults directly to OTP CHALLENGE for quick sandbox verification
   useEffect(() => {
     if (isOpen) {
-      setPhase('selection');
+      setPhase('otp_challenge');
       setBankOtp('');
       setOtpError('');
+      setTimer(60);
+      setOtpSentToast(true);
     }
   }, [isOpen]);
+
+  // Countdown timer for OTP resend
+  useEffect(() => {
+    if (!isOpen || phase !== 'otp_challenge') return;
+    if (timer > 0) {
+      const interval = setInterval(() => setTimer(t => t - 1), 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isOpen, phase, timer]);
 
   if (!isOpen) return null;
 
@@ -74,40 +94,47 @@ export default function PaymentGatewayModal({
     return 'Card';
   };
 
-  // Trigger payment authorization
-  const handleInitiatePayment = (e) => {
+  // Trigger payment authorization from manual options tab
+  const handleInitiateFromOptions = (e) => {
     if (e) e.preventDefault();
-
-    if (isFree) {
-      // Free ticket pass -> skip payment OTP
-      handleFinalizePayment('FREE_ENTRY_PASS');
-      return;
-    }
-
-    // Launch 3D Secure OTP Challenge
     setPhase('processing');
-    setProcessingText('Encrypting Session & Requesting Bank Authorization...');
-    
+    setProcessingText('Requesting Bank OTP Authorization...');
     setTimeout(() => {
       setPhase('otp_challenge');
-    }, 1200);
+      setTimer(60);
+      setOtpSentToast(true);
+    }, 600);
   };
 
-  // Submit 3D-Secure Bank OTP
+  // Resend OTP
+  const handleResendOtp = () => {
+    setTimer(60);
+    setOtpSentToast(true);
+    setOtpError('');
+    setBankOtp('');
+  };
+
+  // Submit Bank OTP
   const handleVerifyBankOtp = (e) => {
     if (e) e.preventDefault();
     
-    if (bankOtp.length !== 6 && bankOtp !== '123456') {
-      setOtpError('Please enter a valid 6-digit OTP (Try: 123456)');
+    // Validate 6 digits
+    if (bankOtp.length !== 6) {
+      setOtpError('Please enter a 6-digit OTP (e.g. 123456)');
+      return;
+    }
+
+    if (bankOtp !== '123456' && !/^\d{6}$/.test(bankOtp)) {
+      setOtpError('Invalid OTP. Please enter 123456 for instant verification');
       return;
     }
 
     setPhase('processing');
-    setProcessingText('Verifying Payment Signature with Reserve Bank Clearing...');
+    setProcessingText('Verifying OTP with Bank Payment Gateway...');
 
     setTimeout(() => {
       handleFinalizePayment(`TXN-${Date.now().toString().slice(-8)}`);
-    }, 1500);
+    }, 1000);
   };
 
   const handleFinalizePayment = (txnId) => {
@@ -135,7 +162,7 @@ export default function PaymentGatewayModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -149,9 +176,9 @@ export default function PaymentGatewayModal({
                 <ShieldCheck className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h3 className="font-bold text-lg leading-tight">TeerthSetu Payment Gateway</h3>
+                <h3 className="font-bold text-lg leading-tight">Payment Verification</h3>
                 <p className="text-[11px] text-white/80 flex items-center gap-1">
-                  <Lock className="h-3 w-3" /> 256-Bit SSL Encrypted Checkout
+                  <Lock className="h-3 w-3" /> 256-Bit SSL Encrypted OTP Authorization
                 </p>
               </div>
             </div>
@@ -166,30 +193,168 @@ export default function PaymentGatewayModal({
 
           {/* Amount Order Summary Badge */}
           <div className="bg-slate-50 dark:bg-slate-950/60 p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
-            <div>
-              <span className="text-slate-500 block uppercase text-[9px] font-bold tracking-wider">Service</span>
-              <span className="font-bold text-slate-800 dark:text-slate-200">
-                {orderDetails.specialDarshan || orderDetails.title || 'Darshan Pass'} ({orderDetails.visitors || 1} Guests)
+            <div className="min-w-0 pr-2">
+              <span className="text-slate-500 block uppercase text-[9px] font-bold tracking-wider">Booking Item</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200 truncate block">
+                {orderDetails.hotelName 
+                  ? `${orderDetails.hotelName} • ${orderDetails.roomType || 'Pilgrim Room'}`
+                  : `${orderDetails.specialDarshan || orderDetails.title || 'Darshan Pass'} (${orderDetails.visitors || 1} Guests)`
+                }
               </span>
             </div>
-            <div className="text-right">
-              <span className="text-slate-500 block uppercase text-[9px] font-bold tracking-wider">Total Payable</span>
-              <span className="font-extrabold text-base text-saffron">
+            <div className="text-right shrink-0">
+              <span className="text-slate-500 block uppercase text-[9px] font-bold tracking-wider">Amount</span>
+              <span className="font-black text-base text-saffron">
                 {isFree ? 'FREE (₹0)' : `₹ ${displayAmount}`}
               </span>
             </div>
           </div>
 
-          {/* PHASE 1: METHOD SELECTION */}
+          {/* ======================================================== */}
+          {/* PHASE 1: DIRECT OTP CHALLENGE (DEFAULT FOR QUICK PAY)    */}
+          {/* ======================================================== */}
+          {phase === 'otp_challenge' && (
+            <form onSubmit={handleVerifyBankOtp} className="p-6 space-y-4 text-center">
+              {/* Simulated SMS Alert Banner */}
+              {otpSentToast && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -8 }} 
+                  animate={{ opacity: 1, y: 0 }} 
+                  className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-3 flex items-start gap-2.5 text-left"
+                >
+                  <div className="p-1.5 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-lg shrink-0 mt-0.5">
+                    <MessageSquare className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 text-xs">
+                    <div className="flex items-center justify-between font-bold text-emerald-800 dark:text-emerald-300">
+                      <span>SMS Alert: Bank / Gateway</span>
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-normal">Just now</span>
+                    </div>
+                    <p className="text-slate-700 dark:text-slate-300 text-[11px] mt-0.5 leading-snug">
+                      Your One-Time Password (OTP) is <strong className="font-mono bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded font-black text-xs">123456</strong> to authorize payment of <strong className="text-slate-900 dark:text-white font-bold">₹{displayAmount}</strong> to TeerthSetu.
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+
+              <div>
+                <h4 className="text-base font-extrabold text-slate-900 dark:text-white">
+                  Enter 6-Digit Payment OTP
+                </h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center justify-center gap-1">
+                  <Phone className="h-3 w-3 text-saffron" /> Sent to <strong className="text-slate-700 dark:text-slate-300">{maskedPhone}</strong>
+                </p>
+              </div>
+
+              {/* Payment Route Chips */}
+              <div className="flex items-center justify-center gap-2 pt-1">
+                <span className="text-[10px] uppercase font-bold text-slate-400">Charging via:</span>
+                {['UPI', 'Card', 'NetBanking'].map(m => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setPayMethod(m)}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all ${
+                      payMethod === m 
+                        ? 'bg-saffron/15 border-saffron text-saffron shadow-xs' 
+                        : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                    }`}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
+
+              {/* 6-Digit OTP Box */}
+              <div className="max-w-xs mx-auto space-y-2.5 pt-1">
+                <div className="relative">
+                  <input
+                    type="text"
+                    maxLength={6}
+                    required
+                    autoFocus
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-2xl py-3 text-center text-2xl font-black tracking-[0.45em] text-slate-900 dark:text-white focus:outline-none focus:border-saffron shadow-inner font-mono"
+                    placeholder="••••••"
+                    value={bankOtp}
+                    onChange={(e) => {
+                      setBankOtp(e.target.value.replace(/\D/g, ''));
+                      setOtpError('');
+                    }}
+                  />
+                </div>
+
+                {otpError && (
+                  <p className="text-[11px] text-red-500 font-semibold flex items-center justify-center gap-1">
+                    <AlertCircle className="h-3.5 w-3.5" /> {otpError}
+                  </p>
+                )}
+
+                {/* Auto-Fill One-Tap Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBankOtp('123456');
+                    setOtpError('');
+                  }}
+                  className="w-full py-1.5 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-300/60 dark:border-amber-700/60 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-xs"
+                >
+                  <Sparkles className="h-3.5 w-3.5 text-saffron" />
+                  <span>Auto-fill OTP (123456)</span>
+                </button>
+
+                {/* Submit Verification Button */}
+                <button
+                  type="submit"
+                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl text-xs sm:text-sm transition-all shadow-md shadow-emerald-600/30 flex items-center justify-center gap-2 hover:scale-102"
+                >
+                  <Lock className="h-4 w-4" />
+                  <span>Verify OTP & Authorize ₹{displayAmount}</span>
+                </button>
+              </div>
+
+              {/* Timer and Resend Row */}
+              <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-100 dark:border-slate-800">
+                <span className="flex items-center gap-1 text-[11px]">
+                  <Timer className="h-3.5 w-3.5 text-slate-400" />
+                  {timer > 0 ? `Resend code in ${timer}s` : 'Didn\'t receive code?'}
+                </span>
+                <button
+                  type="button"
+                  disabled={timer > 0}
+                  onClick={handleResendOtp}
+                  className={`font-bold text-[11px] ${
+                    timer > 0 ? 'text-slate-400 cursor-not-allowed' : 'text-saffron hover:underline'
+                  }`}
+                >
+                  Resend OTP
+                </button>
+              </div>
+
+              {/* Switch to Full Gateway Options View */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setPhase('selection')}
+                  className="text-[11px] text-slate-500 hover:text-slate-800 dark:hover:text-white underline"
+                >
+                  Want to view UPI QR Code or Card Details instead?
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* ======================================================== */}
+          {/* PHASE 2: MANUAL GATEWAY SELECTION (UPI / CARD / NETBANK) */}
+          {/* ======================================================== */}
           {phase === 'selection' && (
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-5">
               {/* Payment Methods Nav Tabs */}
               <div className="grid grid-cols-4 gap-2 bg-slate-100 dark:bg-slate-950 p-1.5 rounded-2xl">
                 <button
                   type="button"
-                  onClick={() => setPayMethod('upi')}
+                  onClick={() => setPayMethod('UPI')}
                   className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex flex-col items-center gap-1 ${
-                    payMethod === 'upi'
+                    payMethod === 'UPI'
                       ? 'bg-white dark:bg-slate-800 text-saffron shadow-md'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
@@ -198,9 +363,9 @@ export default function PaymentGatewayModal({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setPayMethod('card')}
+                  onClick={() => setPayMethod('CARD')}
                   className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex flex-col items-center gap-1 ${
-                    payMethod === 'card'
+                    payMethod === 'CARD'
                       ? 'bg-white dark:bg-slate-800 text-saffron shadow-md'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
@@ -209,9 +374,9 @@ export default function PaymentGatewayModal({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setPayMethod('netbanking')}
+                  onClick={() => setPayMethod('NETBANKING')}
                   className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex flex-col items-center gap-1 ${
-                    payMethod === 'netbanking'
+                    payMethod === 'NETBANKING'
                       ? 'bg-white dark:bg-slate-800 text-saffron shadow-md'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
@@ -220,9 +385,9 @@ export default function PaymentGatewayModal({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setPayMethod('wallet')}
+                  onClick={() => setPayMethod('WALLET')}
                   className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex flex-col items-center gap-1 ${
-                    payMethod === 'wallet'
+                    payMethod === 'WALLET'
                       ? 'bg-white dark:bg-slate-800 text-saffron shadow-md'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
@@ -232,14 +397,13 @@ export default function PaymentGatewayModal({
               </div>
 
               {/* METHOD TAB 1: UPI & QR CODE */}
-              {payMethod === 'upi' && (
+              {payMethod === 'UPI' && (
                 <div className="space-y-4 text-center">
                   <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
                     <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider block">
                       Scan UPI QR Code with GPay / PhonePe / Paytm
                     </span>
                     
-                    {/* Live Scannable Dynamic UPI QR Code */}
                     <TicketQR 
                       ticketData={{
                         bookingId: `UPI-${displayAmount}`,
@@ -285,8 +449,8 @@ export default function PaymentGatewayModal({
               )}
 
               {/* METHOD TAB 2: CREDIT / DEBIT CARD */}
-              {payMethod === 'card' && (
-                <form onSubmit={handleInitiatePayment} className="space-y-3 text-left">
+              {payMethod === 'CARD' && (
+                <div className="space-y-3 text-left">
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       Card Number
@@ -351,11 +515,11 @@ export default function PaymentGatewayModal({
                       onChange={(e) => setCardForm({ ...cardForm, name: e.target.value })}
                     />
                   </div>
-                </form>
+                </div>
               )}
 
               {/* METHOD TAB 3: NETBANKING */}
-              {payMethod === 'netbanking' && (
+              {payMethod === 'NETBANKING' && (
                 <div className="space-y-3 text-left">
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
                     Select Popular Bank
@@ -380,7 +544,7 @@ export default function PaymentGatewayModal({
               )}
 
               {/* METHOD TAB 4: WALLETS */}
-              {payMethod === 'wallet' && (
+              {payMethod === 'WALLET' && (
                 <div className="space-y-3 text-left">
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
                     Select Digital Wallet
@@ -404,100 +568,44 @@ export default function PaymentGatewayModal({
                 </div>
               )}
 
-              {/* Main Submit Action */}
+              {/* Submit & Go To OTP Button */}
               <button
                 type="button"
-                onClick={handleInitiatePayment}
+                onClick={handleInitiateFromOptions}
                 className="w-full py-3.5 bg-saffron hover:bg-[#e85a28] text-white font-extrabold rounded-2xl text-sm shadow-lg shadow-saffron/30 transition-all flex items-center justify-center gap-2"
               >
-                <Lock className="h-4 w-4" /> {isFree ? 'Issue Free Pass' : `Pay ₹ ${displayAmount} & Confirm Pass`}
+                <Lock className="h-4 w-4" />
+                <span>Continue to OTP Verification (₹{displayAmount})</span>
               </button>
 
-              <div className="text-center text-[10px] text-slate-500 flex items-center justify-center gap-2">
-                <span>✓ NPCI & RBI Sandbox Approved</span>
-                <span>•</span>
-                <span>Instant Ticket Dispatch</span>
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setPhase('otp_challenge')}
+                  className="text-xs text-saffron hover:underline font-bold flex items-center justify-center gap-1 mx-auto"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" /> Back to OTP Screen
+                </button>
               </div>
             </div>
           )}
 
-          {/* PHASE 2: 3D SECURE BANK OTP CHALLENGE */}
-          {phase === 'otp_challenge' && (
-            <form onSubmit={handleVerifyBankOtp} className="p-6 space-y-5 text-center">
-              <div className="w-14 h-14 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto border border-amber-500/20">
-                <Lock className="h-7 w-7" />
-              </div>
-
-              <div>
-                <h4 className="text-lg font-bold text-slate-900 dark:text-white">3D-Secure Bank Authorization</h4>
-                <p className="text-xs text-slate-500 mt-1">
-                  Enter the 6-digit OTP sent by your issuing bank to complete payment of <strong className="text-saffron">₹ {displayAmount}</strong>.
-                </p>
-              </div>
-
-              <div className="max-w-xs mx-auto space-y-3">
-                <input
-                  type="text"
-                  maxLength={6}
-                  required
-                  autoFocus
-                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl py-3 text-center text-xl font-bold tracking-[0.5em] text-slate-900 dark:text-white focus:outline-none focus:border-saffron"
-                  placeholder="••••••"
-                  value={bankOtp}
-                  onChange={(e) => {
-                    setBankOtp(e.target.value.replace(/\D/g, ''));
-                    setOtpError('');
-                  }}
-                />
-
-                {otpError && (
-                  <p className="text-[11px] text-red-500 font-semibold flex items-center justify-center gap-1">
-                    <AlertCircle className="h-3.5 w-3.5" /> {otpError}
-                  </p>
-                )}
-
-                {/* Quick Auto-Fill Test OTP Helper */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setBankOtp('123456');
-                    setOtpError('');
-                  }}
-                  className="text-[11px] text-saffron hover:underline font-semibold flex items-center justify-center gap-1 mx-auto"
-                >
-                  <Sparkles className="h-3 w-3" /> Auto-fill Sandbox Test OTP (123456)
-                </button>
-
-                <button
-                  type="submit"
-                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition-all shadow-md mt-2"
-                >
-                  Authorize Payment
-                </button>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setPhase('selection')}
-                className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-white flex items-center justify-center gap-1 mx-auto"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" /> Change Payment Method
-              </button>
-            </form>
-          )}
-
-          {/* PHASE 3: PROCESSING SPINNER */}
+          {/* ======================================================== */}
+          {/* PHASE 3: PROCESSING SPINNER                             */}
+          {/* ======================================================== */}
           {phase === 'processing' && (
             <div className="p-10 text-center space-y-4 min-h-[300px] flex flex-col items-center justify-center">
               <div className="w-12 h-12 border-4 border-saffron border-t-transparent rounded-full animate-spin mx-auto" />
               <div>
-                <h4 className="text-md font-bold text-slate-900 dark:text-white">Processing Transaction</h4>
+                <h4 className="text-md font-bold text-slate-900 dark:text-white">Authorizing Transaction</h4>
                 <p className="text-xs text-slate-500 mt-1 animate-pulse">{processingText}</p>
               </div>
             </div>
           )}
 
-          {/* PHASE 4: SUCCESS CONFIRMATION */}
+          {/* ======================================================== */}
+          {/* PHASE 4: SUCCESS CONFIRMATION                           */}
+          {/* ======================================================== */}
           {phase === 'success' && (
             <div className="p-8 text-center space-y-4">
               <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20">

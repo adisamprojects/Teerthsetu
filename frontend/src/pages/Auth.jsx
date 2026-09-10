@@ -7,9 +7,6 @@ import { useGoogleLogin } from '@react-oauth/google';
 
 export default function Auth() {
   const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://teerthsetu.onrender.com';
-  const [searchParams] = useSearchParams();
-  const initialRole = searchParams.get('role') || 'devotee';
-  const [role, setRole] = useState(initialRole);
   const [isLogin, setIsLogin] = useState(true);
   const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'phone'
   const [showForgot, setShowForgot] = useState(false);
@@ -24,17 +21,8 @@ export default function Auth() {
   const [otpTimer, setOtpTimer] = useState(60);
   const [showVideo, setShowVideo] = useState(false);
   const [showVerifiedText, setShowVerifiedText] = useState(true);
-  const [showAdminHint, setShowAdminHint] = useState(true);
 
-  useEffect(() => {
-    if (role === 'admin') {
-      setShowAdminHint(true);
-      const timer = setTimeout(() => setShowAdminHint(false), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [role]);
-
-  const triggerSuccessAnimation = (userData, token, route, isOtp = false) => {
+  const triggerSuccessAnimation = (userData, token, route = '/devotee', isOtp = false) => {
     setShowVideo(true);
 
     if (isOtp) {
@@ -59,12 +47,6 @@ export default function Auth() {
     "/temple5.jpg",
     "/temple6.jpg",
     "/temple7.jpg"
-  ];
-  const adminTemples = [
-    "/admin1.jpg",
-    "/admin2.jpg",
-    "/admin3.jpg",
-    "/admin4.jpg"
   ];
 
   const [currentTempleIndex, setCurrentTempleIndex] = useState(0);
@@ -135,7 +117,7 @@ export default function Auth() {
     if (isLogin) {
       const identifier = loginMethod === 'email' ? formData.email : formData.phone;
       if (loginMethod === 'email') {
-        if (role !== 'admin' && !identifier.endsWith('@gmail.com')) {
+        if (!identifier.endsWith('@gmail.com')) {
           setEmailError('Please enter a valid Gmail address ending with @gmail.com.');
           return;
         }
@@ -143,7 +125,7 @@ export default function Auth() {
       const payload = {
         email: identifier,
         password: formData.password,
-        role: role
+        role: 'devotee'
       };
 
       fetch(`${API_BASE_URL}/api/auth/login`, {
@@ -166,7 +148,7 @@ export default function Auth() {
               setOtpTimer(60);
               setOtpValues(['', '', '', '', '', '']);
             } else {
-              triggerSuccessAnimation(data.user, data.token, role === 'admin' ? '/admin' : '/devotee');
+              triggerSuccessAnimation(data.user, data.token, '/devotee');
             }
           } else {
             setErrorMsg(data.message || 'Login failed');
@@ -234,7 +216,7 @@ export default function Auth() {
       alert(`Please enter your ${loginMethod} first.`);
       return;
     }
-    if (loginMethod === 'email' && role !== 'admin' && !identifier.endsWith('@gmail.com')) {
+    if (loginMethod === 'email' && !identifier.endsWith('@gmail.com')) {
       setEmailError('Please enter a valid Gmail address ending with @gmail.com.');
       return;
     }
@@ -314,7 +296,7 @@ export default function Auth() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             idToken: codeResponse.access_token,
-            role: role,
+            role: 'devotee',
             email: userInfo.email,
             name: userInfo.name
           })
@@ -329,11 +311,7 @@ export default function Auth() {
         }
 
         if (res.status === 200) {
-          if (role === 'admin') {
-            triggerSuccessAnimation({ ...data.user, role: 'admin' }, data.token, '/admin');
-          } else {
-            triggerSuccessAnimation(data.user, data.token, '/devotee');
-          }
+          triggerSuccessAnimation(data.user, data.token, '/devotee');
         } else {
           setErrorMsg(data.message || 'Google Login failed');
         }
@@ -467,8 +445,8 @@ export default function Auth() {
         <div className="w-full md:w-5/12 relative flex flex-col border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 overflow-hidden min-h-[300px] rounded-t-3xl md:rounded-tr-none md:rounded-l-3xl">
           <AnimatePresence>
             <motion.img
-              key={`${role}-${currentTempleIndex}`}
-              src={role === 'admin' ? adminTemples[currentTempleIndex] : temples[currentTempleIndex]}
+              key={currentTempleIndex}
+              src={temples[currentTempleIndex]}
               initial={{ opacity: 0, scale: 1.05 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
@@ -499,7 +477,7 @@ export default function Auth() {
             <div
               className="absolute -inset-4 opacity-50 dark:opacity-50 blur-sm"
               style={{
-                backgroundImage: role === 'devotee' ? "url('/scripture.jpg')" : "url('/elephant.jpg')",
+                backgroundImage: "url('/scripture.jpg')",
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundBlendMode: isDarkMode ? 'multiply' : 'normal',
@@ -583,7 +561,7 @@ export default function Auth() {
               <>
                 {/* Form Title */}
                 <h3 className="text-3xl font-serif font-black text-red-900 dark:text-white text-center mb-6">
-                  {isLogin ? `${role === 'admin' ? 'Administrator' : 'Devotee'} Login` : 'Create Devotee Account'}
+                  {isLogin ? 'Devotee Login' : 'Create Devotee Account'}
                 </h3>
 
                 {errorMsg && (
@@ -597,14 +575,14 @@ export default function Auth() {
                   <div className="flex justify-center gap-6 mb-6 text-sm">
                     <button
                       type="button"
-                      className={`pb-1 border-b-2 font-serif font-bold text-base transition-colors ${loginMethod === 'email' ? (role === 'admin' ? 'border-black text-black dark:border-emerald-400 dark:text-emerald-400' : 'border-red-900 text-red-900 dark:border-saffron dark:text-saffron') : (role === 'admin' ? 'border-transparent text-black dark:text-white hover:text-black dark:hover:text-emerald-200' : 'border-transparent text-red-900 dark:text-white hover:text-red-800 dark:hover:text-slate-200')}`}
+                      className={`pb-1 border-b-2 font-serif font-bold text-base transition-colors ${loginMethod === 'email' ? 'border-red-900 text-red-900 dark:border-saffron dark:text-saffron' : 'border-transparent text-red-900 dark:text-white hover:text-red-800 dark:hover:text-slate-200'}`}
                       onClick={() => setLoginMethod('email')}
                     >
                       Email Login
                     </button>
                     <button
                       type="button"
-                      className={`pb-1 border-b-2 font-serif font-bold text-base transition-colors ${loginMethod === 'phone' ? (role === 'admin' ? 'border-black text-black dark:border-emerald-400 dark:text-emerald-400' : 'border-red-900 text-red-900 dark:border-saffron dark:text-saffron') : (role === 'admin' ? 'border-transparent text-black dark:text-white hover:text-black dark:hover:text-emerald-200' : 'border-transparent text-red-900 dark:text-white hover:text-red-800 dark:hover:text-slate-200')}`}
+                      className={`pb-1 border-b-2 font-serif font-bold text-base transition-colors ${loginMethod === 'phone' ? 'border-red-900 text-red-900 dark:border-saffron dark:text-saffron' : 'border-transparent text-red-900 dark:text-white hover:text-red-800 dark:hover:text-slate-200'}`}
                       onClick={() => setLoginMethod('phone')}
                     >
                       Phone Login
@@ -649,11 +627,6 @@ export default function Auth() {
                                 <span className="text-sm font-medium text-slate-700 leading-snug">{emailError}</span>
                               </motion.div>
                             )}
-                            {role === 'admin' && showAdminHint && (
-                              <p className="text-xs text-red-500 dark:text-red-400 mt-2 pl-1 font-medium transition-opacity duration-500 opacity-100">
-                                Note: Must use an authorized management account
-                              </p>
-                            )}
                           </div>
                         ) : (
                           <div className="relative flex items-center">
@@ -696,17 +669,15 @@ export default function Auth() {
                           </button>
                         </div>
 
-                        {role !== 'admin' && (
-                          <div className="flex justify-end mt-[-8px] mb-2">
-                            <button
-                              type="button"
-                              onClick={handleRequestLoginOtp}
-                              className={`text-sm font-bold hover:underline ${role === 'admin' ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-900 dark:text-red-400'}`}
-                            >
-                              Login with OTP instead
-                            </button>
-                          </div>
-                        )}
+                        <div className="flex justify-end mt-[-8px] mb-2">
+                          <button
+                            type="button"
+                            onClick={handleRequestLoginOtp}
+                            className="text-sm font-bold hover:underline text-red-900 dark:text-red-400"
+                          >
+                            Login with OTP instead
+                          </button>
+                        </div>
 
                         <div className="text-right">
                           <button
@@ -855,7 +826,7 @@ export default function Auth() {
 
                   <button
                     type="submit"
-                    className={`w-full py-3.5 rounded-xl font-bold text-lg mt-4 shadow-lg transition-all duration-300 hover:-translate-y-0.5 text-white ${role === 'admin' ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-950/30' : 'bg-saffron hover:bg-[#e85a28] shadow-saffron/30'}`}
+                    className="w-full py-3.5 rounded-xl font-bold text-lg mt-4 shadow-lg transition-all duration-300 hover:-translate-y-0.5 text-white bg-saffron hover:bg-[#e85a28] shadow-saffron/30"
                   >
                     {isLogin ? 'Secure Sign In' : 'Register Account'}
                   </button>
@@ -883,17 +854,15 @@ export default function Auth() {
                   Continue with Google
                 </button>
 
-                {role === 'devotee' && (
-                  <p className="text-center font-serif text-red-900 dark:text-white font-bold mt-8 text-base">
-                    {isLogin ? "Don't have an account? " : "Already have an account? "}
-                    <span
-                      className="text-black dark:text-saffron font-black cursor-pointer hover:underline"
-                      onClick={() => setIsLogin(!isLogin)}
-                    >
-                      {isLogin ? 'Create Account' : 'Sign In'}
-                    </span>
-                  </p>
-                )}
+                <p className="text-center font-serif text-red-900 dark:text-white font-bold mt-8 text-base">
+                  {isLogin ? "Don't have an account? " : "Already have an account? "}
+                  <span
+                    className="text-black dark:text-saffron font-black cursor-pointer hover:underline"
+                    onClick={() => setIsLogin(!isLogin)}
+                  >
+                    {isLogin ? 'Create Account' : 'Sign In'}
+                  </span>
+                </p>
               </>
             )}
           </div>
@@ -918,7 +887,7 @@ export default function Auth() {
               <div
                 className="absolute inset-0 z-0 opacity-50 dark:opacity-60 blur-[2px] pointer-events-none"
                 style={{
-                  backgroundImage: role === 'admin' ? "url('/admin_fp.jpg')" : "url('/devotee_fp.jpg')",
+                  backgroundImage: "url('/devotee_fp.jpg')",
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                 }}
@@ -954,7 +923,7 @@ export default function Auth() {
                       </button>
                       <button
                         type="submit"
-                        className={`flex-1 py-2.5 rounded-xl font-bold transition-all backdrop-blur-sm ${role === 'admin' ? 'bg-emerald-600/90 hover:bg-emerald-500 text-white' : 'bg-saffron/90 text-slate-900 dark:text-white hover:bg-[#e85a28]'}`}
+                        className="flex-1 py-2.5 rounded-xl font-bold transition-all backdrop-blur-sm bg-saffron/90 text-slate-900 dark:text-white hover:bg-[#e85a28]"
                       >
                         Send Link
                       </button>

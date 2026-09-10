@@ -16,14 +16,6 @@ export default function Sidebar({ activeTab, setActiveTab }) {
           <Users size={20} />
           <span>Devotee Portal</span>
         </div>
-        
-        <div 
-          className={`nav-item ${activeTab === 'admin' ? 'active' : ''}`}
-          onClick={() => setActiveTab('admin')}
-        >
-          <LayoutDashboard size={20} />
-          <span>Admin Controls</span>
-        </div>
 
         <div 
           className={`nav-item ${activeTab === 'ai' ? 'active' : ''}`}
