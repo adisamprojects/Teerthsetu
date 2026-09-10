@@ -1731,7 +1731,7 @@ function PlannerView({ temples, onClose }) {
     days: 2,
     budget: 'Comfort',
     optimizationGoal: 'crowd_averse',
-    customDirectives: 'Evening Aarti Priority, Senior Citizen Wheelchair',
+    customDirectives: 'Senior Citizen Wheelchair',
     travelParty: 'Family'
   });
   const [planResult, setPlanResult] = useState(null);
@@ -1963,11 +1963,10 @@ function PlannerView({ temples, onClose }) {
                 className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-saffron"
                 value={formData.customDirectives}
                 onChange={e => setFormData({ ...formData, customDirectives: e.target.value })}
-                placeholder="e.g. Evening Aarti, Senior Citizen Wheelchair..."
+                placeholder="e.g. Senior Citizen Wheelchair, Trust Dharamshala..."
               />
               <div className="flex flex-wrap gap-1.5 mt-2.5">
                 {[
-                  'Evening Aarti Priority',
                   'Senior Citizen Wheelchair',
                   'Trust Dharamshala Only',
                   'Direct Vande Bharat'

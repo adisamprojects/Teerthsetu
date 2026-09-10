@@ -2037,7 +2037,7 @@ app.get('/api/planner', (req, res) => {
       days: 3,
       budget: 'Comfort',
       optimizationGoal: 'crowd_averse',
-      customDirectives: 'Evening Aarti Priority'
+      customDirectives: 'Senior Citizen Wheelchair'
     },
     groqConfigured: !!process.env.GROQ_API_KEY
   });

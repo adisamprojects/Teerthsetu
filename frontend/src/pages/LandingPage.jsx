@@ -1,29 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  SparklesIcon, ChartBarIcon, CalendarDaysIcon, QrCodeIcon,
-  MapIcon, BuildingOfficeIcon, UserGroupIcon, ChartPieIcon
-} from '@heroicons/react/24/outline';
-import { Sparkles, Shield, Compass, Calendar, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTransparentImage } from '../hooks/useTransparentImage';
-
-const features = [
-  { icon: <ChartBarIcon className="h-8 w-8 text-saffron" />, title: "AI Crowd Forecasting", desc: "Predict footfall and resource requirements with precision." },
-  { icon: <CalendarDaysIcon className="h-8 w-8 text-saffron" />, title: "Smart Darshan Booking", desc: "Dynamically allocate slots based on live crowd density." },
-  { icon: <QrCodeIcon className="h-8 w-8 text-saffron" />, title: "QR Entry System", desc: "Frictionless gate access with unified family passes." },
-  { icon: <MapIcon className="h-8 w-8 text-saffron" />, title: "Travel Planning", desc: "AI-generated optimal routes for multi-temple journeys." },
-  { icon: <BuildingOfficeIcon className="h-8 w-8 text-saffron" />, title: "Hotel Booking", desc: "Integrated stays customized for your spiritual path." },
-  { icon: <UserGroupIcon className="h-8 w-8 text-saffron" />, title: "Elderly Assistance", desc: "Priority wheelchairs and volunteer escorts for seniors." },
-  { icon: <ChartPieIcon className="h-8 w-8 text-saffron" />, title: "Live Queue Telemetry", desc: "Real-time updates on temple darshan waiting times and footfall." }
-];
-
-const testimonials = [
-  { name: "Rahul S.", text: "TeerthSethu transformed our Tirupati trip. The AI wait time prediction was incredibly accurate!" },
-  { name: "Priya M.", text: "Booking a wheelchair for my grandmother was seamless. The volunteer was waiting for us at the gate." },
-  { name: "Ananya R., Bengaluru", text: "The dynamic queue management and clean digital pass made our Kashi Yatra truly peaceful." }
-];
 
 
 export default function LandingPage() {
@@ -349,35 +329,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* FEATURES GRID SECTION */}
-        <section className={`py-24 px-6 max-w-6xl mx-auto border-t transition-colors duration-300 ${isDarkMode ? 'border-slate-900' : 'border-slate-200'}`}>
-          <div className="text-center mb-16">
-            <h2 className={`text-4xl font-bold mb-4 transition-colors ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>A Unified Spiritual Ecosystem</h2>
-            <p className={`text-lg max-w-2xl mx-auto transition-colors ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Everything you need to plan, book, and experience a divine journey without the friction.</p>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-center">
-            {features.map((feature, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                className={`border p-6 rounded-2xl transition-all duration-300 ${isDarkMode
-                    ? 'bg-slate-900 border-slate-800 hover:border-saffron/40 shadow-lg'
-                    : 'bg-white border-slate-200 hover:border-saffron/40 shadow-md'
-                  }`}
-              >
-                <div className="bg-saffron/10 p-3 rounded-xl inline-block mb-4">
-                  {feature.icon}
-                </div>
-                <h3 className={`text-lg font-bold mb-2 transition-colors ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{feature.title}</h3>
-                <p className={`text-sm leading-relaxed transition-colors ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>{feature.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </section>
 
 
         {/* FOOTER */}
