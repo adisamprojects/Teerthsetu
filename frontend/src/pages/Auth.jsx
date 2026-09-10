@@ -91,6 +91,15 @@ export default function Auth() {
 
   const navigate = useNavigate();
 
+  // Auto-redirect if already logged in — persist session across page refreshes
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+    if (token && storedUser) {
+      navigate('/devotee', { replace: true });
+    }
+  }, []);
+
   const handleInputChange = (e) => {
     if (e.target.name === 'email') setEmailError('');
     setFormData({
