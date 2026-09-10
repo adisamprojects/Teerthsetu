@@ -3031,7 +3031,7 @@ function HotelsView({ userBookings = [], targetBooking = null, onSelectTargetBoo
                     className="bg-saffron hover:bg-orange-600 text-slate-950 font-extrabold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all shadow-md hover:shadow-lg hover:scale-[1.02] flex items-center gap-2"
                   >
                     <Bed className="h-5 w-5 stroke-[2.5]" />
-                    <span>{activeBooking ? 'Book For Slot' : 'Secure Stay'}</span>
+                    <span>Book Now</span>
                   </button>
                 </div>
               </div>
