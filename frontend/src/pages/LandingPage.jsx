@@ -333,7 +333,7 @@ export default function LandingPage() {
                         Devotee Portal
                         <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#FF7A1A]/20 text-[#FF7A1A] font-bold tracking-wider uppercase" style={{ fontFamily: "'Inter', sans-serif" }}>Pilgrim Access</span>
                       </h3>
-                      <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Smart pilgrimage planning & divine darshan passes</p>
+                      <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>AI Booking & Travel — Smart pilgrimage & itinerary planning</p>
                     </div>
                   </div>
 
@@ -405,7 +405,7 @@ export default function LandingPage() {
                 style={!isDarkMode ? { filter: 'brightness(0.85) contrast(1.15) saturate(1.1)', mixBlendMode: 'multiply' } : {}}
               />
             </div>
-            <p className={`mb-8 max-w-sm mx-auto text-sm leading-relaxed transition-colors ${isDarkMode ? 'text-slate-400' : 'text-slate-650'}`}>India's First AI-Powered Pilgrimage Management & Crowd Intelligence Platform</p>
+            <p className={`mb-8 max-w-sm mx-auto text-sm leading-relaxed transition-colors ${isDarkMode ? 'text-slate-400' : 'text-slate-650'}`}>India's First AI Booking & Travel Platform for Pilgrimages & Heritage Destinations</p>
             <div className="flex justify-center gap-6 text-sm">
               <span className={`cursor-pointer transition-colors ${isDarkMode ? 'hover:text-white' : 'hover:text-slate-900'}`}>About Us</span>
               <span className={`cursor-pointer transition-colors ${isDarkMode ? 'hover:text-white' : 'hover:text-slate-900'}`}>Temple Trusts</span>

@@ -476,7 +476,7 @@ export default function Auth() {
                 style={{ filter: 'brightness(1.2)' }}
               />
             </div>
-            <p className="text-white font-medium text-sm drop-shadow-md">AI-Powered Smart Pilgrimage Management</p>
+            <p className="text-white font-medium text-sm drop-shadow-md">AI Booking & Travel — Smart Pilgrimage Planning</p>
           </div>
         </div>
 
