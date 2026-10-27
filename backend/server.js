@@ -2025,6 +2025,143 @@ function getCircuitForTemple(templeId, templeName = '') {
   return templeCircuits['2'];
 }
 
+// Robust dynamic pilgrimage cost & logistics calculation engine
+function calculatePilgrimageCosts({ circuit, startCity, daysNum, budgetScale, optimizationGoal }) {
+  const isEconomy = budgetScale === 'Economy';
+  const isLuxury = budgetScale === 'Luxury';
+  const isComfort = !isEconomy && !isLuxury;
+
+  // Approximate distance calculation from startCity to circuit.city
+  const originLower = (startCity || '').toLowerCase().trim();
+  const destLower = (circuit.city || '').toLowerCase().trim();
+
+  let intercityDistance = 0;
+  if (!originLower || originLower.includes(destLower) || destLower.includes(originLower)) {
+    intercityDistance = 0;
+  } else {
+    intercityDistance = 650;
+    if (originLower.includes('delhi') || originLower.includes('noida') || originLower.includes('gurugram')) {
+      if (destLower.includes('varanasi')) intercityDistance = 820;
+      else if (destLower.includes('tirupati')) intercityDistance = 2150;
+      else if (destLower.includes('rudraprayag') || destLower.includes('kedar')) intercityDistance = 450;
+      else if (destLower.includes('chamoli') || destLower.includes('badri')) intercityDistance = 530;
+      else if (destLower.includes('puri')) intercityDistance = 1600;
+      else if (destLower.includes('somnath')) intercityDistance = 1250;
+      else if (destLower.includes('madurai')) intercityDistance = 2600;
+      else if (destLower.includes('ujjain')) intercityDistance = 800;
+      else if (destLower.includes('katra') || destLower.includes('vaishno')) intercityDistance = 630;
+      else if (destLower.includes('thanjavur') || destLower.includes('rameswaram')) intercityDistance = 2700;
+      else if (destLower.includes('konark')) intercityDistance = 1650;
+    } else if (originLower.includes('mumbai') || originLower.includes('pune')) {
+      if (destLower.includes('varanasi')) intercityDistance = 1450;
+      else if (destLower.includes('tirupati')) intercityDistance = 1050;
+      else if (destLower.includes('somnath')) intercityDistance = 850;
+      else if (destLower.includes('ujjain')) intercityDistance = 640;
+      else if (destLower.includes('madurai')) intercityDistance = 1400;
+      else if (destLower.includes('kedar') || destLower.includes('badri')) intercityDistance = 1900;
+    } else if (originLower.includes('bengaluru') || originLower.includes('bangalore') || originLower.includes('chennai') || originLower.includes('hyderabad')) {
+      if (destLower.includes('tirupati')) intercityDistance = 150;
+      else if (destLower.includes('madurai')) intercityDistance = 430;
+      else if (destLower.includes('varanasi')) intercityDistance = 1850;
+      else if (destLower.includes('puri')) intercityDistance = 1200;
+      else if (destLower.includes('ujjain')) intercityDistance = 1300;
+      else if (destLower.includes('kedar') || destLower.includes('badri')) intercityDistance = 2400;
+    } else if (originLower.includes('kolkata')) {
+      if (destLower.includes('puri') || destLower.includes('konark')) intercityDistance = 500;
+      else if (destLower.includes('varanasi')) intercityDistance = 680;
+      else if (destLower.includes('tirupati')) intercityDistance = 1600;
+      else if (destLower.includes('kedar')) intercityDistance = 1500;
+    }
+  }
+
+  const localCircuitKm = circuit.baseDist + (daysNum * 38);
+  const totalKm = (intercityDistance > 0 ? intercityDistance * 2 : 0) + localCircuitKm;
+
+  // Sort available circuit hotels by price
+  const sortedHotels = (circuit.hotels && circuit.hotels.length > 0)
+    ? [...circuit.hotels].sort((a, b) => (a.comfortPrice || 0) - (b.comfortPrice || 0))
+    : [{ name: 'Temple Trust Yatri Niwas', economyPrice: 350, comfortPrice: 1600 }];
+
+  let selectedHotel = sortedHotels[0];
+  let dailyHotelCost = 400;
+
+  if (isEconomy) {
+    selectedHotel = sortedHotels[0];
+    dailyHotelCost = selectedHotel.economyPrice || 350;
+  } else if (isLuxury) {
+    selectedHotel = sortedHotels[sortedHotels.length - 1];
+    dailyHotelCost = Math.max(selectedHotel.comfortPrice || 4500, Math.round((sortedHotels[0]?.comfortPrice || 1800) * 2.2));
+  } else {
+    // Comfort: pick middle-tier hotel
+    selectedHotel = sortedHotels.length > 2 ? sortedHotels[1] : sortedHotels[0];
+    dailyHotelCost = selectedHotel.comfortPrice || 1800;
+  }
+
+  // Daily Meals Cost
+  const dailyMealsCost = isEconomy ? 300 : (isLuxury ? 1600 : 750);
+
+  // Transit Cost & Mode Description
+  let transitMode = '';
+  let transitCost = 0;
+
+  if (isEconomy) {
+    transitMode = intercityDistance > 0 
+      ? `Express Rail (Sleeper/3AC) + Local ${circuit.transitMode.economy}`
+      : `Local ${circuit.transitMode.economy}`;
+    const intercityCost = intercityDistance > 0 ? Math.round(intercityDistance * 0.75 * 2) : 0;
+    const localCost = Math.round(daysNum * 350 + 450);
+    transitCost = intercityCost + localCost;
+  } else if (isLuxury) {
+    transitMode = intercityDistance > 500
+      ? `Direct Air / Premium Vande Bharat Exec + Dedicated Chauffeur SUV`
+      : `Private AC Luxury Chauffeur SUV (Innova Crysta / Fortuner)`;
+    const intercityCost = intercityDistance > 0 ? Math.round(intercityDistance * 3.8 * 2) : 0;
+    const localCost = Math.round(daysNum * 2600 + 4000);
+    transitCost = intercityCost + localCost;
+  } else {
+    transitMode = intercityDistance > 0
+      ? `AC 3-Tier Express / Vande Bharat + ${circuit.transitMode.comfort}`
+      : circuit.transitMode.comfort;
+    const intercityCost = intercityDistance > 0 ? Math.round(intercityDistance * 1.6 * 2) : 0;
+    const localCost = Math.round(daysNum * 1200 + 1800);
+    transitCost = intercityCost + localCost;
+  }
+
+  // Policy-based adjustments
+  let policyAdjustment = 0;
+  let policyNote = '';
+  if (optimizationGoal === 'budget_maximizer') {
+    policyAdjustment = -Math.round((dailyHotelCost * daysNum + transitCost) * 0.15);
+    policyNote = 'Budget First: Maximized trust dharamshala subsidies and shared e-mobility';
+  } else if (optimizationGoal === 'senior_citizen') {
+    policyAdjustment = daysNum * 550;
+    policyNote = 'Senior Friendly: Allocated battery eco-cart passes, wheelchair assistance, and ground floor bays';
+  } else if (optimizationGoal === 'fastest') {
+    policyAdjustment = daysNum * 700;
+    policyNote = 'Express Circuit: High-speed corridor tolls and priority station pickups';
+  }
+
+  const totalStayCost = dailyHotelCost * daysNum;
+  const totalMealsCost = dailyMealsCost * daysNum;
+  const totalBudgetEst = Math.max(800, totalStayCost + transitCost + totalMealsCost + policyAdjustment);
+
+  return {
+    isEconomy,
+    isLuxury,
+    isComfort,
+    selectedHotel,
+    dailyHotelCost,
+    totalStayCost,
+    transitMode,
+    transitCost,
+    mealsCost: totalMealsCost,
+    totalBudgetEst,
+    totalKm,
+    policyAdjustment,
+    policyNote
+  };
+}
+
 // GET test endpoint for /api/planner (prevents 404 when tested in browser)
 app.get('/api/planner', (req, res) => {
   const sampleCircuit = templeCircuits['2'];
@@ -2039,8 +2176,41 @@ app.get('/api/planner', (req, res) => {
       optimizationGoal: 'crowd_averse',
       customDirectives: 'Senior Citizen Wheelchair'
     },
-    groqConfigured: !!process.env.GROQ_API_KEY
+    groqConfigured: !!process.env.GROQ_API_KEY,
+    groqModel: process.env.GROQ_MODEL || 'qwen/qwen3.8-27b'
   });
+});
+
+// Diagnostic endpoint to test Groq connection directly
+app.get('/api/groq-test', async (req, res) => {
+  const key = (process.env.GROQ_API_KEY || '').trim();
+  if (!key) {
+    return res.status(400).json({ success: false, error: 'GROQ_API_KEY is not configured in backend/.env' });
+  }
+  const model = process.env.GROQ_MODEL || 'qwen/qwen3.8-27b';
+  try {
+    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${key}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [{ role: 'user', content: 'Say hello from TeerthSetu AI' }],
+        max_tokens: 30
+      })
+    });
+    const status = groqRes.status;
+    const data = await groqRes.json();
+    if (groqRes.ok) {
+      res.json({ success: true, model, status, reply: data?.choices?.[0]?.message?.content });
+    } else {
+      res.status(status).json({ success: false, model, status, error: data });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // Autonomous AI Pilgrimage Route Agent
@@ -2061,17 +2231,26 @@ app.post('/api/planner', async (req, res) => {
   const budgetScale = budget || 'Comfort';
   const circuit = getCircuitForTemple(templeId, templeName);
 
-  const isEconomy = budgetScale === 'Economy';
-  const isLuxury = budgetScale === 'Luxury';
+  const financials = calculatePilgrimageCosts({
+    circuit,
+    startCity: start,
+    daysNum,
+    budgetScale,
+    optimizationGoal
+  });
+
+  const isEconomy = financials.isEconomy;
+  const isLuxury = financials.isLuxury;
+  const isComfort = financials.isComfort;
 
   const directivesLower = (typeof customDirectives === 'string' ? customDirectives : '').toLowerCase();
 
   // Agent Multi-Phase Execution Trace
   const agentPhaseLogs = [
     { phase: '1. Ingestion', status: 'COMPLETE', detail: `Parsed origin (${start}), destination (${circuit.name}), ${daysNum} days, budget ${budgetScale}, party: ${travelParty}.` },
-    { phase: '2. Transit Corridor Analysis', status: 'COMPLETE', detail: `Computed primary transit leg: ${start} ➔ ${circuit.city} via ${isEconomy ? 'Express Rail / Deluxe Coach' : 'Vande Bharat / Air Corridor'}.` },
+    { phase: '2. Transit Corridor Analysis', status: 'COMPLETE', detail: `Computed primary transit leg: ${start} ➔ ${circuit.city} via ${financials.transitMode}.` },
     { phase: '3. Crowd & Queue Telemetry', status: 'COMPLETE', detail: `Analyzed historic queue volumes for ${circuit.name}. Selected optimal Darshan slot with <25 min expected wait.` },
-    { phase: '4. Lodging Optimization', status: 'COMPLETE', detail: `Filtered top-rated stays. Assigned ${circuit.hotels[0]?.name} (0.3 km from entrance).` },
+    { phase: '4. Lodging Optimization', status: 'COMPLETE', detail: `Filtered top-rated stays. Assigned ${financials.selectedHotel.name} (0.3 km from entrance, ₹${financials.dailyHotelCost.toLocaleString('en-IN')}/night).` },
     { phase: '5. Multi-Stop Synthesis', status: 'COMPLETE', detail: `Synthesized full ${daysNum}-day sacred itinerary tailored to ${optimizationGoal.replace('_', ' ')} policy.` }
   ];
 
@@ -2081,7 +2260,7 @@ app.post('/api/planner', async (req, res) => {
     type: 'Primary Sanctum',
     timeSlot: optimizationGoal === 'crowd_averse' ? '05:30 AM - 08:30 AM' : '07:00 AM - 10:00 AM',
     crowdForecast: optimizationGoal === 'crowd_averse' ? 'Calm (Low Rush)' : 'Moderate',
-    stay: circuit.primary.stay,
+    stay: financials.selectedHotel.name,
     transit: circuit.primary.transit,
     highlights: 'Main deity Darshan, special Archana, sacred Tirtha & Mahaprasad receipt.',
     gateInfo: 'Entry via Gate 1 / Vaikuntam or Corridor Complex',
@@ -2130,35 +2309,39 @@ app.post('/api/planner', async (req, res) => {
     }
   }
 
-  // Calculate costs & distances
-  const totalKm = circuit.baseDist + (daysNum * 38);
-  const transitModeStr = isEconomy ? circuit.transitMode.economy : circuit.transitMode.comfort;
-
-  const dailyHotelCost = isEconomy ? (circuit.hotels[0]?.economyPrice || 400) : (circuit.hotels[0]?.comfortPrice || 1800);
-  const totalStayCost = dailyHotelCost * daysNum;
-  const transitCost = isEconomy ? Math.round(daysNum * 450 + 800) : Math.round(daysNum * 1400 + 2200);
-  const mealsCost = daysNum * (isEconomy ? 300 : 750);
-  const totalBudgetEst = totalStayCost + transitCost + mealsCost;
-
   // Base domain rationale decisions
   const defaultRationale = [
     `Optimal Sanctum Entry: Scheduled ${circuit.primary.name} during the tranquil morning slot (05:30 - 08:30 AM) to bypass peak afternoon tourist influx.`,
-    `Transit Efficiency: Paired sequential excursions along the same geographic corridor across ${daysNum} days to reduce unnecessary city back-tracking by ${Math.round(totalKm * 0.22)} km.`,
-    `Party Compatibility: Curated lodging at ${circuit.hotels[0]?.name} which features priority battery-car pickup points and pure vegetarian sattvik dining.`,
-    optimizationGoal === 'senior_citizen' 
-      ? `Accessibility Safeguard: Allocated 45-minute rest intervals across all ${daysNum} days between sacred nodes and routed via flat wheelchair walkways.`
-      : `Devotional Timing: Aligned afternoon downtime with temple rest periods (Bhog/Pooja) across your ${daysNum}-day stay to maximize energy for evening deep Aarti.`
+    `Transit Efficiency: Paired sequential excursions along the same geographic corridor across ${daysNum} days via ${financials.transitMode} to reduce unnecessary city back-tracking.`,
+    `Party Compatibility: Curated lodging at ${financials.selectedHotel.name} (₹${financials.dailyHotelCost.toLocaleString('en-IN')}/night) which features priority battery-car pickup points and pure vegetarian sattvik dining.`,
+    financials.policyNote 
+      ? `Policy Adaptation: ${financials.policyNote}.`
+      : (optimizationGoal === 'senior_citizen' 
+          ? `Accessibility Safeguard: Allocated 45-minute rest intervals across all ${daysNum} days between sacred nodes and routed via flat wheelchair walkways.`
+          : `Devotional Timing: Aligned afternoon downtime with temple rest periods (Bhog/Pooja) across your ${daysNum}-day stay to maximize energy for evening deep Aarti.`)
   ];
 
-  // Real-Time Groq Cloud Llama 3.3 70B Multi-Day Itinerary Inference
+  // Real-Time Groq Cloud Multi-Day Itinerary Inference
   let liveLLMRationale = null;
   let liveLLMRoute = null;
+  let activeModelUsed = null;
 
   if (process.env.GROQ_API_KEY) {
-    try {
-      const groqPrompt = `You are the TeerthSetu Pilgrimage AI Agent.
+    const groqApiKey = (process.env.GROQ_API_KEY || '').trim();
+    // Prioritize user configured model, then proven active high-speed models on Groq
+    const candidateModels = [
+      process.env.GROQ_MODEL,
+      'qwen/qwen3.8-27b',
+      'openai/gpt-oss-120b',
+      'openai/gpt-oss-20b',
+      'llama-3.3-70b-versatile',
+      'llama-3.1-8b-instant'
+    ].filter(Boolean);
+
+    const groqPrompt = `You are the TeerthSetu Pilgrimage AI Agent.
 A devotee wants a customized spiritual pilgrimage from "${start}" to "${circuit.name}" (${circuit.city}) for EXACTLY ${daysNum} DAYS.
-Budget: "${budgetScale}", Policy: "${optimizationGoal}", Directives: "${customDirectives || 'Standard sacred circuit'}".
+Budget: "${budgetScale}" (Target total budget: ₹${financials.totalBudgetEst.toLocaleString('en-IN')}), Policy: "${optimizationGoal}", Directives: "${customDirectives || 'Standard sacred circuit'}".
+Lodging: ${financials.selectedHotel.name} (~₹${financials.dailyHotelCost}/night), Transit: ${financials.transitMode}.
 
 Generate an itinerary for all ${daysNum} days (Day 1 through Day ${daysNum}).
 Include regional shrines, aartis, and holy ghats associated with ${circuit.name}.
@@ -2178,7 +2361,7 @@ Output ONLY valid JSON with this exact schema:
       "type": "Primary Sanctum",
       "timeSlot": "06:00 AM - 09:30 AM",
       "crowdForecast": "Calm (Low Rush)",
-      "stay": "${circuit.hotels[0]?.name || 'Temple Guest House'}",
+      "stay": "${financials.selectedHotel.name}",
       "transit": "Express Rail / Highway Cab",
       "highlights": "Arrival, check-in and auspicious Mangala Darshan"
     }
@@ -2186,77 +2369,47 @@ Output ONLY valid JSON with this exact schema:
 }
 Make sure "itinerary" has entries covering Day 1 to Day ${daysNum}!`;
 
-      const groqApiKey = (process.env.GROQ_API_KEY || '').trim();
-      const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${groqApiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: [
-            { role: 'system', content: 'You are the TeerthSetu Pilgrimage AI Agent. Provide accurate, spiritually authentic multi-day itineraries in strict JSON.' },
-            { role: 'user', content: groqPrompt }
-          ],
-          response_format: { type: 'json_object' },
-          temperature: 0.3,
-          max_tokens: 1800
-        })
-      });
+    for (const model of candidateModels) {
+      try {
+        const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${groqApiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: [
+              { role: 'system', content: 'You are the TeerthSetu Pilgrimage AI Agent. Provide accurate, spiritually authentic multi-day itineraries in strict JSON.' },
+              { role: 'user', content: groqPrompt }
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.3,
+            max_tokens: 800
+          })
+        });
 
-      if (groqRes.ok) {
-        const data = await groqRes.json();
-        const parsed = JSON.parse(data?.choices?.[0]?.message?.content || '{}');
-        if (parsed?.rationale && Array.isArray(parsed.rationale) && parsed.rationale.length >= 3) {
-          liveLLMRationale = parsed.rationale;
-        }
-        if (parsed?.itinerary && Array.isArray(parsed.itinerary) && parsed.itinerary.length >= 2) {
-          liveLLMRoute = parsed.itinerary;
-          console.log(`[AI Agent] Groq Llama 3.3 70B generated custom ${liveLLMRoute.length}-step route for ${daysNum} days!`);
-        }
-      } else {
-        const errText = await groqRes.text();
-        console.warn('[AI Agent] Groq returned status:', groqRes.status, errText);
-
-        // If 404 or model issue, try fallback to llama-3.1-8b-instant
-        if (groqRes.status === 404) {
-          console.log('[AI Agent] Retrying with llama-3.1-8b-instant...');
-          const retryRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${groqApiKey}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              model: 'llama-3.1-8b-instant',
-              messages: [
-                { role: 'system', content: 'You are the TeerthSetu Pilgrimage AI Agent. Provide accurate itineraries in strict JSON.' },
-                { role: 'user', content: groqPrompt }
-              ],
-              response_format: { type: 'json_object' },
-              temperature: 0.3,
-              max_tokens: 1800
-            })
-          });
-
-          if (retryRes.ok) {
-            const retryData = await retryRes.json();
-            const parsedRetry = JSON.parse(retryData?.choices?.[0]?.message?.content || '{}');
-            if (parsedRetry?.rationale && Array.isArray(parsedRetry.rationale)) {
-              liveLLMRationale = parsedRetry.rationale;
-            }
-            if (parsedRetry?.itinerary && Array.isArray(parsedRetry.itinerary)) {
-              liveLLMRoute = parsedRetry.itinerary;
-              console.log(`[AI Agent] Groq Llama 3.1 8B generated custom ${liveLLMRoute.length}-step route!`);
-            }
-          } else {
-            console.warn('[AI Agent] Retry with llama-3.1-8b-instant also returned:', retryRes.status, await retryRes.text());
+        if (groqRes.ok) {
+          const data = await groqRes.json();
+          const parsed = JSON.parse(data?.choices?.[0]?.message?.content || '{}');
+          if (parsed?.rationale && Array.isArray(parsed.rationale) && parsed.rationale.length >= 2) {
+            liveLLMRationale = parsed.rationale;
           }
+          if (parsed?.itinerary && Array.isArray(parsed.itinerary) && parsed.itinerary.length >= 1) {
+            liveLLMRoute = parsed.itinerary;
+          }
+          if (liveLLMRationale || liveLLMRoute) {
+            activeModelUsed = model;
+            console.log(`[AI Agent] Groq (${model}) generated custom ${liveLLMRoute?.length || 0}-step route for ${daysNum} days!`);
+            break;
+          }
+        } else {
+          const errText = await groqRes.text();
+          console.warn(`[AI Agent] Groq model '${model}' returned status ${groqRes.status}:`, errText);
         }
+      } catch (e) {
+        console.warn(`[AI Agent] Groq model '${model}' error:`, e.message);
       }
-    } catch (e) {
-      console.warn('[AI Agent] Groq inference fallback to local:', e.message);
     }
   }
 
@@ -2271,11 +2424,11 @@ Make sure "itinerary" has entries covering Day 1 to Day ${daysNum}!`;
 
   res.json({
     agentMetadata: {
-      agentName: liveLLMRationale ? 'TeerthSetu AI Agent (Powered by Llama 3.3 70B on Groq)' : 'TeerthSetu Pilgrimage AI Agent v2.4',
-      modelProvider: liveLLMRationale ? 'Groq Llama 3.3 70B' : 'TeerthSetu Local Engine',
+      agentName: activeModelUsed ? `TeerthSetu AI Agent (Powered by ${activeModelUsed} on Groq)` : 'TeerthSetu Pilgrimage AI Agent v2.4',
+      modelProvider: activeModelUsed ? `Groq (${activeModelUsed})` : 'TeerthSetu Local Engine',
       optimizationGoal,
       efficiencyScore: '98.6%',
-      executionTimeMs: liveLLMRationale ? 220 : 12,
+      executionTimeMs: activeModelUsed ? 220 : 12,
       phaseLogs: agentPhaseLogs,
       rationale: liveLLMRationale || defaultRationale,
       dosDonts: agentDosDonts
@@ -2283,19 +2436,21 @@ Make sure "itinerary" has entries covering Day 1 to Day ${daysNum}!`;
     route: finalRoute,
     hotels: circuit.hotels.map(h => ({
       name: h.name,
-      price: isEconomy ? h.economyPrice : h.comfortPrice,
+      price: isEconomy ? h.economyPrice : (isLuxury ? Math.round(h.comfortPrice * 2.0) : h.comfortPrice),
       rating: h.rating
     })),
     transport: {
-      mode: isEconomy ? (isLuxury ? 'Private Luxury Chauffeur SUV' : transitModeStr) : transitModeStr,
-      distance: `${totalKm} km multi-shrine circuit`,
+      mode: financials.transitMode,
+      distance: `${financials.totalKm} km multi-shrine circuit`,
       estTime: `${daysNum} Days Itinerary`,
-      estFuel: isEconomy ? `₹${transitCost.toLocaleString('en-IN')} tickets & local transit` : `₹${transitCost.toLocaleString('en-IN')} fuel, tolls & chauffeur`,
-      budgetEstimate: `₹${totalBudgetEst.toLocaleString('en-IN')}`,
+      estFuel: isEconomy 
+        ? `₹${financials.transitCost.toLocaleString('en-IN')} tickets & local transit` 
+        : (isLuxury ? `₹${financials.transitCost.toLocaleString('en-IN')} private chauffeur SUV, tolls & fuel` : `₹${financials.transitCost.toLocaleString('en-IN')} fuel, tolls & transit`),
+      budgetEstimate: `₹${financials.totalBudgetEst.toLocaleString('en-IN')}`,
       breakdown: {
-        stay: `₹${totalStayCost.toLocaleString('en-IN')}`,
-        travel: `₹${transitCost.toLocaleString('en-IN')}`,
-        meals: `₹${mealsCost.toLocaleString('en-IN')}`
+        stay: `₹${financials.totalStayCost.toLocaleString('en-IN')}`,
+        travel: `₹${financials.transitCost.toLocaleString('en-IN')}`,
+        meals: `₹${financials.mealsCost.toLocaleString('en-IN')}`
       }
     }
   });
@@ -2353,17 +2508,20 @@ app.post('/api/ai/chat', async (req, res) => {
     // If planning query, build a structured plan object that user can click "Apply to Timeline"
     let suggestedPlan = null;
     if (isPlanningQuery) {
-      const isEconomy = budgetScale === 'Economy';
+      const chatFinancials = calculatePilgrimageCosts({
+        circuit,
+        startCity: startingCity,
+        daysNum: requestedDays,
+        budgetScale,
+        optimizationGoal: currentContext.optimizationGoal || 'crowd_averse'
+      });
+
       const excSlice = circuit.excursions.slice(0, requestedDays <= 2 ? 2 : (requestedDays <= 4 ? 3 : 4));
       const route = [
         { name: startingCity, type: 'Origin' },
-        { name: circuit.primary.name, type: 'Primary Destination', stay: circuit.primary.stay, transit: circuit.primary.transit }
+        { name: circuit.primary.name, type: 'Primary Destination', stay: chatFinancials.selectedHotel.name, transit: circuit.primary.transit }
       ];
       excSlice.forEach(e => route.push({ name: e.name, type: 'Sacred Excursion', stay: e.stay, transit: e.transit }));
-
-      const totalKm = circuit.baseDist + (requestedDays * 35);
-      const transitCost = isEconomy ? Math.round(requestedDays * 450 + 800) : Math.round(requestedDays * 1400 + 2200);
-      const totalBudgetEst = (isEconomy ? 400 : 1800) * requestedDays + transitCost + (requestedDays * (isEconomy ? 300 : 750));
 
       suggestedPlan = {
         templeId: matchedTempleId || '2',
@@ -2374,15 +2532,20 @@ app.post('/api/ai/chat', async (req, res) => {
         route,
         hotels: circuit.hotels.map(h => ({
           name: h.name,
-          price: isEconomy ? h.economyPrice : h.comfortPrice,
+          price: chatFinancials.isEconomy ? h.economyPrice : (chatFinancials.isLuxury ? Math.round(h.comfortPrice * 2.0) : h.comfortPrice),
           rating: h.rating
         })),
         transport: {
-          mode: isEconomy ? circuit.transitMode.economy : circuit.transitMode.comfort,
-          distance: `${totalKm} km multi-shrine circuit`,
+          mode: chatFinancials.transitMode,
+          distance: `${chatFinancials.totalKm} km multi-shrine circuit`,
           estTime: `${requestedDays} Days Itinerary`,
-          estFuel: isEconomy ? `₹${transitCost.toLocaleString('en-IN')} tickets` : `₹${transitCost.toLocaleString('en-IN')} fuel & tolls`,
-          budgetEstimate: `₹${totalBudgetEst.toLocaleString('en-IN')}`
+          estFuel: chatFinancials.isEconomy ? `₹${chatFinancials.transitCost.toLocaleString('en-IN')} tickets` : `₹${chatFinancials.transitCost.toLocaleString('en-IN')} fuel & tolls`,
+          budgetEstimate: `₹${chatFinancials.totalBudgetEst.toLocaleString('en-IN')}`,
+          breakdown: {
+            stay: `₹${chatFinancials.totalStayCost.toLocaleString('en-IN')}`,
+            travel: `₹${chatFinancials.transitCost.toLocaleString('en-IN')}`,
+            meals: `₹${chatFinancials.mealsCost.toLocaleString('en-IN')}`
+          }
         }
       };
     }

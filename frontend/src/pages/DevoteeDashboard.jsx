@@ -2168,23 +2168,53 @@ function PlannerView({ temples, onClose }) {
                         </div>
 
                         {/* Directions CTA on stops */}
-                        {item.type !== 'Origin City' && (
-                          <div className="mt-2.5 pt-2 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-end">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setDirectionsStop({
-                                  name: item.name,
-                                  address: `${item.name}, ${temples.find(t => t._id === formData.templeId)?.location || 'Sacred Shrine'}`
-                                });
-                              }}
-                              className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
-                            >
-                              <Navigation className="h-3.5 w-3.5" />
-                              <span>Get Accurate Directions to this Node</span>
-                            </button>
-                          </div>
-                        )}
+                        {item.type !== 'Origin City' && (() => {
+                          const targetT = temples?.find(t => String(t._id) === String(formData.templeId)) || temples?.[0];
+                          let cleanName = item.name || 'Sacred Node';
+                          if (cleanName.includes('➔')) cleanName = cleanName.split('➔').pop().trim();
+                          cleanName = cleanName.replace(/^day\s*\d+\s*:\s*/i, '').trim();
+                          const gMapsDirectUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${cleanName}, ${targetT?.location || targetT?.name || 'Sacred Shrine'}`)}`;
+
+                          return (
+                            <div className="mt-2.5 pt-2 border-t border-slate-200 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
+                              <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                                <MapPin className="h-3 w-3 text-saffron shrink-0" />
+                                <span className="truncate max-w-[200px] sm:max-w-xs">{cleanName}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <a
+                                  href={gMapsDirectUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                  title="Open live navigation in Google Maps"
+                                >
+                                  <GoogleGIcon className="h-3.5 w-3.5" />
+                                  <span>Google Maps</span>
+                                  <ExternalLink className="h-2.5 w-2.5 text-slate-400" />
+                                </a>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setDirectionsStop({
+                                      name: cleanName,
+                                      address: `${cleanName}, ${targetT?.location || 'Sacred Pilgrimage Zone'}`,
+                                      lat: item.lat || targetT?.lat,
+                                      lng: item.lon || item.lng || targetT?.lon || targetT?.lng,
+                                      categoryName: item.type || 'Sacred Pilgrimage Node',
+                                      startingCity: formData.startingCity
+                                    });
+                                  }}
+                                  className="text-xs font-extrabold px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                                >
+                                  <Navigation className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                                  <span>Get Accurate Directions to this Node</span>
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                   ))}
@@ -2192,10 +2222,10 @@ function PlannerView({ temples, onClose }) {
               </div>
 
               {/* Transit & Financial Breakdown Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 dark:bg-slate-950/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 bg-slate-50 dark:bg-slate-950/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs">
                 <div>
                   <span className="text-slate-400 block text-[10px] font-bold uppercase">Transit Mode</span>
-                  <span className="font-bold text-slate-900 dark:text-white mt-0.5 block">{planResult.transport?.mode}</span>
+                  <span className="font-bold text-slate-900 dark:text-white mt-0.5 block truncate" title={planResult.transport?.mode}>{planResult.transport?.mode}</span>
                 </div>
                 <div>
                   <span className="text-slate-400 block text-[10px] font-bold uppercase">Total Distance</span>
@@ -2206,8 +2236,12 @@ function PlannerView({ temples, onClose }) {
                   <span className="font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 block">{planResult.transport?.breakdown?.stay || '₹1,600'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px] font-bold uppercase">Transit & Fuel</span>
-                  <span className="font-bold text-saffron mt-0.5 block">{planResult.transport?.estFuel}</span>
+                  <span className="text-slate-400 block text-[10px] font-bold uppercase">Transit & Travel</span>
+                  <span className="font-bold text-saffron mt-0.5 block">{planResult.transport?.breakdown?.travel || planResult.transport?.estFuel}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px] font-bold uppercase">Sattvik Meals</span>
+                  <span className="font-bold text-amber-600 dark:text-amber-400 mt-0.5 block">{planResult.transport?.breakdown?.meals || '₹1,500'}</span>
                 </div>
               </div>
 
@@ -2284,8 +2318,14 @@ function PlannerView({ temples, onClose }) {
       {/* Turn-by-Turn Directions Modal for any Route Stop */}
       {directionsStop && (
         <DirectionsModal
+          isOpen={true}
           destination={directionsStop}
           onClose={() => setDirectionsStop(null)}
+          templeCoords={{
+            lat: (temples?.find(t => String(t._id) === String(formData.templeId)) || temples?.[0])?.lat,
+            lng: (temples?.find(t => String(t._id) === String(formData.templeId)) || temples?.[0])?.lon,
+            name: `${(temples?.find(t => String(t._id) === String(formData.templeId)) || temples?.[0])?.name || 'Temple'} Main Entrance Gate`
+          }}
         />
       )}
     </div>
