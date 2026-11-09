@@ -153,6 +153,7 @@ export default function DevoteeDashboard() {
     ];
   });
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showAlertsDropdown, setShowAlertsDropdown] = useState(false);
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -280,15 +281,152 @@ export default function DevoteeDashboard() {
         </div>
 
         <div className="flex items-center gap-4">
-          <button
-            onClick={() => setActiveTab('alerts')}
-            className="relative p-2 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            <Bell className="h-5 w-5" />
-            {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-saffron rounded-full ring-2 ring-white dark:ring-slate-900 animate-pulse" />
-            )}
-          </button>
+          {/* Bell Icon with Anchored Live Alerts Dropdown Popover */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                const nextState = !showAlertsDropdown;
+                setShowAlertsDropdown(nextState);
+                if (nextState && unreadCount > 0) {
+                  handleMarkNotificationsRead();
+                }
+              }}
+              className={`relative p-2 rounded-xl transition-colors cursor-pointer ${
+                showAlertsDropdown 
+                  ? 'bg-saffron/15 text-saffron' 
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+              title="Live Alerts & Broadcasts"
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-saffron rounded-full ring-2 ring-white dark:ring-slate-900 animate-pulse" />
+              )}
+            </button>
+
+            {/* LIVE ALERTS FLOATING DROPDOWN ANCHORED RIGHT BESIDE BELL */}
+            <AnimatePresence>
+              {showAlertsDropdown && (
+                <>
+                  {/* Backdrop click listener */}
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setShowAlertsDropdown(false)} 
+                  />
+                  
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                    transition={{ duration: 0.15, ease: 'easeOut' }}
+                    className="absolute right-0 top-full mt-2.5 w-80 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl z-50 overflow-hidden text-left"
+                  >
+                    {/* Header */}
+                    <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-950/50">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-saffron/15 text-saffron flex items-center justify-center font-bold">
+                          <Bell className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                            Live Temple Alerts
+                          </h4>
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            Real-time broadcast bulletins
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={handleMarkNotificationsRead}
+                            className="text-[10px] font-bold text-saffron hover:underline px-2 py-1 rounded-md hover:bg-saffron/10 transition-colors cursor-pointer"
+                          >
+                            Mark Read
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setShowAlertsDropdown(false)}
+                          className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Alerts List */}
+                    <div className="max-h-[360px] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                      {notifications.length === 0 ? (
+                        <div className="p-8 text-center space-y-2">
+                          <Bell className="h-8 w-8 text-slate-300 dark:text-slate-600 mx-auto" />
+                          <p className="text-xs font-bold text-slate-700 dark:text-slate-300">All caught up!</p>
+                          <p className="text-[11px] text-slate-400">No active alerts or congestion advisories right now.</p>
+                        </div>
+                      ) : (
+                        notifications.map(n => {
+                          const isEmergency = n.type === 'Emergency Broadcast' || (n.message && n.message.toLowerCase().includes('emergency'));
+                          const isCrowd = n.type === 'Crowd Alert' || (n.message && n.message.toLowerCase().includes('crowd'));
+                          return (
+                            <div 
+                              key={n.id} 
+                              className={`p-4 flex items-start gap-3 transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/40 ${
+                                n.unread ? 'bg-amber-500/5 dark:bg-amber-500/5' : ''
+                              }`}
+                            >
+                              <div className={`w-8 h-8 rounded-xl shrink-0 flex items-center justify-center font-bold ${
+                                isEmergency 
+                                  ? 'bg-red-500/15 text-red-500 border border-red-500/30' 
+                                  : isCrowd 
+                                  ? 'bg-amber-500/15 text-amber-500 border border-amber-500/30' 
+                                  : 'bg-saffron/15 text-saffron border border-saffron/30'
+                              }`}>
+                                <Bell className="h-4 w-4" />
+                              </div>
+
+                              <div className="flex-1 min-w-0 space-y-1">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                                    isEmergency 
+                                      ? 'bg-red-500/10 text-red-600 dark:text-red-400' 
+                                      : isCrowd 
+                                      ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' 
+                                      : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                  }`}>
+                                    {n.type || 'Broadcast'}
+                                  </span>
+                                  <span className="text-[10px] font-mono text-slate-400">
+                                    {n.date || 'Just now'}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+                                  {n.message}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="p-3 bg-slate-50/80 dark:bg-slate-950/60 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>Live Shrine Feed Active</span>
+                      </span>
+                      <button
+                        onClick={handleMarkNotificationsRead}
+                        className="text-saffron hover:underline font-bold cursor-pointer"
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
 
           <button
             onClick={toggleTheme}
@@ -338,7 +476,7 @@ export default function DevoteeDashboard() {
           <SidebarButton active={activeTab === 'travels'} icon={<Navigation className="h-5 w-5" />} text="Devotee Travels" onClick={() => setActiveTab('travels')} />
           <SidebarButton active={activeTab === 'nearby'} icon={<MapPin className="h-5 w-5" />} text="Nearby Places & Food" onClick={() => setActiveTab('nearby')} />
           <SidebarButton active={activeTab === 'bookings'} icon={<CalendarCheck className="h-5 w-5" />} text="My Bookings" onClick={() => setActiveTab('bookings')} />
-          <SidebarButton active={activeTab === 'alerts'} icon={<Bell className="h-5 w-5" />} text="Live Alerts" onClick={() => setActiveTab('alerts')} />
+          {/* Live Alerts moved to top header Bell icon popover */}
           {/* Devotee Profile moved to top header profile button */}
         </aside>
 

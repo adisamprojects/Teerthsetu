@@ -378,9 +378,9 @@ const busesData = [
     seatsAvailable: 24,
     rating: 4.7,
     amenities: ['Air Suspension', 'Chilled Mineral Water', 'Reading Light', 'Blanket Provided', 'GPS Tracking'],
-    bookingUrl: 'https://www.apsrtconline.in/oprs-web/guest/home.do?h=1',
+    bookingUrl: 'https://www.apsrtconline.in/eticket/',
     redbusUrl: 'https://www.redbus.in/bus-tickets/vijayawada-to-tirupati?operator=APSRTC&busType=Multi-Axle+Ultra+Luxury',
-    officialPortalName: 'Official APSRTC Portal',
+    officialPortalName: 'APSRTC e-Ticket Portal',
     badge: 'OFFICIAL APSRTC'
   },
   {
@@ -400,9 +400,9 @@ const busesData = [
     seatsAvailable: 31,
     rating: 4.6,
     amenities: ['AC Semi-Sleeper', 'Fast Direct Highway Route', 'Drinking Water', 'Luggage Compartment'],
-    bookingUrl: 'https://www.apsrtconline.in/oprs-web/guest/home.do?h=1',
+    bookingUrl: 'https://www.apsrtconline.in/eticket/',
     redbusUrl: 'https://www.redbus.in/bus-tickets/chennai-to-tirupati?operator=APSRTC&busType=AC+High-Deck',
-    officialPortalName: 'Official APSRTC Portal',
+    officialPortalName: 'APSRTC e-Ticket Portal',
     badge: 'NON-STOP EXPRESS'
   },
   {
@@ -422,9 +422,9 @@ const busesData = [
     seatsAvailable: 45,
     rating: 4.9,
     amenities: ['Ghat Road Specially Tuned Brakes', 'High Frequency (3 mins)', 'Temple Luggage Carrier', 'Senior Reserved Seats'],
-    bookingUrl: 'https://www.apsrtconline.in/oprs-web/guest/home.do?h=1',
-    redbusUrl: 'https://www.apsrtconline.in/',
-    officialPortalName: 'Official APSRTC Portal',
+    bookingUrl: 'https://www.apsrtconline.in/eticket/',
+    redbusUrl: 'https://www.apsrtconline.in/eticket/',
+    officialPortalName: 'APSRTC e-Ticket Portal',
     badge: 'HILL GHAT SPECIAL'
   },
 
@@ -1765,6 +1765,17 @@ export default function DevoteeTravelsView({ user, userBookings = [], targetBook
               </p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
+              {selectedDestinationCity === 'Tirupati' && (
+                <button
+                  onClick={() => handleRedirectToBooking({ serviceName: 'APSRTC e-Ticket Portal' }, 'bus', 'https://www.apsrtconline.in/eticket/')}
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-md shadow-blue-600/20 transition-all flex items-center gap-1.5 cursor-pointer"
+                  title="Open Official APSRTC e-Ticket Passenger Booking Portal"
+                >
+                  <Bus className="h-3.5 w-3.5" />
+                  <span>APSRTC e-Ticket Portal</span>
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </button>
+              )}
               <button
                 onClick={() => handleRedbusBooking()}
                 className="px-4 py-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-extrabold text-xs rounded-xl shadow-md shadow-red-600/20 transition-all flex items-center gap-1.5 cursor-pointer"
