@@ -12,7 +12,10 @@ export default {
         saffron: '#FF6B35',
         gold: '#F7C948',
         cardBg: 'rgba(255, 255, 255, 0.85)',
-        cardBorder: 'rgba(247, 201, 72, 0.4)'
+        cardBorder: 'rgba(247, 201, 72, 0.4)',
+        slate: {
+          850: '#151e2e'
+        }
       },
       fontFamily: {
         sans: ['Outfit', 'sans-serif'],
