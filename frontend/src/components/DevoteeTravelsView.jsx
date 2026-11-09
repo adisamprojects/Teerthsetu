@@ -1113,44 +1113,15 @@ export default function DevoteeTravelsView({ user, userBookings = [], targetBook
 
   // Build dynamic RedBus deep-link taking Origin (Current Location) and Destination (Active Booking Pass)
   const buildRedbusUrl = (origin, destination, date = null, bus = null) => {
-    const fromSlug = slugifyCity(origin || originCity || 'Bengaluru');
-    let toSlug = slugifyCity(destination || selectedDestinationCity || 'Tirupati');
+    const fromSlug = slugifyCity(origin || originCity || 'Bengaluru') || 'bangalore';
+    let toSlug = slugifyCity(destination || selectedDestinationCity || 'Tirupati') || 'tirupati';
 
     if (fromSlug === toSlug) {
       toSlug = `${toSlug}-temple`;
     }
 
-    const baseUrl = `https://www.redbus.in/bus-tickets/${fromSlug}-to-${toSlug}`;
-    const fromId = REDBUS_CITY_IDS[fromSlug];
-    const toId = REDBUS_CITY_IDS[toSlug];
-
-    const params = new URLSearchParams();
-
-    // CRITICAL: Only attach parameterized search fields IF both valid numeric IDs are present!
-    // If IDs are missing, omitting query parameters loads the clean SEO route directly on redBus
-    // without triggering any "Please enter source and destination" prompt or fromCityId=NaN!
-    if (fromId && toId) {
-      const fromName = (origin || originCity || 'Bengaluru').split(' ')[0].replace(/[^a-zA-Z]/g, '');
-      const toName = (destination || selectedDestinationCity || 'Tirupati').split(' ')[0].replace(/[^a-zA-Z]/g, '');
-      params.set('fromCityName', fromName);
-      params.set('fromCityId', String(fromId));
-      params.set('toCityName', toName);
-      params.set('toCityId', String(toId));
-      params.set('srcCountry', 'IND');
-      params.set('destCountry', 'IND');
-
-      const formattedDate = formatRedbusDate(date || travelDate || activeBooking?.date);
-      if (formattedDate) {
-        params.set('onward', formattedDate);
-      }
-
-      if (bus?.operator && bus.operator !== 'RedBus') {
-        params.set('operator', bus.operator);
-      }
-    }
-
-    const qs = params.toString();
-    return qs ? `${baseUrl}?${qs}` : baseUrl;
+    // Clean canonical route URL is officially supported by redBus without popup warnings or NaN alerts
+    return `https://www.redbus.in/bus-tickets/${fromSlug}-to-${toSlug}`;
   };
 
   // Dedicated RedBus Click Handler
