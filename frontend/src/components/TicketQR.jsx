@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Download, Printer, CheckCircle, ShieldCheck, Copy, Check, Sparkles, QrCode as QrIcon } from 'lucide-react';
+import { Download, Printer, CheckCircle, ShieldCheck, Copy, Check, QrCode as QrIcon } from 'lucide-react';
 
 /**
  * Pure JavaScript QR Code Generator (Byte mode, Error Correction Level M/H)

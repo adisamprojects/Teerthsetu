@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   ResponsiveContainer, ComposedChart, Area, Line, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine 
 } from 'recharts';
-import { TrendingUp, TrendingDown, Activity, RefreshCw, BarChart2, Zap, Eye, Sliders } from 'lucide-react';
+import { TrendingUp, TrendingDown, Activity, RefreshCw, BarChart2, Eye, Sliders } from 'lucide-react';
 
 // Custom TradingView Style Tooltip
 function FinancialTooltip({ active, payload, label }) {

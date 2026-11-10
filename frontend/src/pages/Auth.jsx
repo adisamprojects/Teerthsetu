@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Phone, Mail, Lock, Shield, User, MapPin, Key, UserCheck, X, Eye, EyeOff } from 'lucide-react';
+import { Phone, Mail, Lock, Shield, User, MapPin, Key, UserCheck, X, Eye, EyeOff } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useGoogleLogin } from '@react-oauth/google';
 

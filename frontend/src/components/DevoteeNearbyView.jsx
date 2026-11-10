@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   MapPin, Navigation, Compass, Search, Filter, Phone, Clock, Star, 
-  Landmark, Crosshair, CheckCircle, ArrowUpRight, Award, Zap, Heart, 
+  Landmark, Crosshair, CheckCircle, ArrowUpRight, Award, Heart, 
   ExternalLink, RefreshCw, AlertCircle, Globe, Utensils, ShoppingBag, ShieldAlert, Coffee,
   Sliders, Navigation2, Check
 } from 'lucide-react';

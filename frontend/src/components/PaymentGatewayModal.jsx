@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, CreditCard, Lock, Smartphone, Building2, Wallet, 
-  CheckCircle, AlertCircle, ArrowLeft, X, Sparkles, RefreshCw, Copy, Check,
-  MessageSquare, Phone, Timer, AlertTriangle, Zap, CheckCircle2, QrCode, ExternalLink
+  CheckCircle, AlertCircle, ArrowLeft, X, RefreshCw, Copy, Check,
+  MessageSquare, Phone, Timer, AlertTriangle, CheckCircle2, QrCode, ExternalLink
 } from 'lucide-react';
 
 // Google G Icon Component
@@ -379,7 +379,6 @@ export default function PaymentGatewayModal({
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                   }`}
                 >
-                  <Zap className="h-3 w-3 text-orange-500" />
                   <span>Online</span>
                 </button>
                 <button
@@ -461,8 +460,7 @@ export default function PaymentGatewayModal({
                     disabled={loadingOrder}
                     className="w-full bg-gradient-to-r from-[#FF6F3C] to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-extrabold py-3 px-4 rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
                   >
-                    <Zap className="h-4 w-4" />
-                    <span>⚡ Pay {isFree ? 'FREE (₹0)' : `₹${displayAmount.toLocaleString()}`} via Razorpay Gateway</span>
+                    <span>Pay {isFree ? 'FREE (₹0)' : `₹${displayAmount.toLocaleString()}`} via Razorpay Gateway</span>
                     <ExternalLink className="h-3 w-3 opacity-80" />
                   </button>
 
@@ -562,7 +560,6 @@ export default function PaymentGatewayModal({
                       onClick={openRazorpayCheckout}
                       className="text-[10px] text-blue-600 dark:text-blue-400 font-bold hover:underline inline-flex items-center gap-1 cursor-pointer"
                     >
-                      <Zap className="h-3 w-3 text-orange-500" />
                       <span>Prefer Razorpay popup? Click here</span>
                     </button>
                   </div>
