@@ -64,7 +64,7 @@ const trainsData = [
     punctuality: '94%',
     operator: 'Indian Railways (SCR)',
     irctcUrl: 'https://www.irctc.co.in/nget/train-search',
-    directBookingUrl: 'https://www.confirmtkt.com/train/sc-tpty/12734/narayanadri-express',
+    directBookingUrl: 'https://www.confirmtkt.com/train-seat-availability/12734',
     badge: 'MOST POPULAR'
   },
   {
@@ -87,7 +87,7 @@ const trainsData = [
     punctuality: '99%',
     operator: 'Indian Railways (SR)',
     irctcUrl: 'https://www.irctc.co.in/nget/train-search',
-    directBookingUrl: 'https://www.confirmtkt.com/train/mas-ru/20677/vande-bharat-express',
+    directBookingUrl: 'https://www.confirmtkt.com/train-seat-availability/20677',
     badge: 'FASTEST EXPRESS'
   },
   {
@@ -110,7 +110,7 @@ const trainsData = [
     punctuality: '96%',
     operator: 'Indian Railways (SWR)',
     irctcUrl: 'https://www.irctc.co.in/nget/train-search',
-    directBookingUrl: 'https://www.confirmtkt.com/train/sbc-tpty/12607/lalbagh-superfast-express',
+    directBookingUrl: 'https://www.confirmtkt.com/train-seat-availability/12607',
     badge: 'DEVOTEE CHOICE'
   },
   {
@@ -134,7 +134,7 @@ const trainsData = [
     punctuality: '95%',
     operator: 'Indian Railways (SR)',
     irctcUrl: 'https://www.irctc.co.in/nget/train-search',
-    directBookingUrl: 'https://www.confirmtkt.com/train/mas-tpty/12671/nilagiri-superfast-express',
+    directBookingUrl: 'https://www.confirmtkt.com/train-seat-availability/12671',
     badge: 'NIGHT CONNECT'
   },
   {
@@ -159,7 +159,7 @@ const trainsData = [
     punctuality: '92%',
     operator: 'Indian Railways (SCR)',
     irctcUrl: 'https://www.irctc.co.in/nget/train-search',
-    directBookingUrl: 'https://www.confirmtkt.com/train/kcg-tpty/12798/venkatadri-superfast-express',
+    directBookingUrl: 'https://www.confirmtkt.com/train-seat-availability/12798',
     badge: 'OVERNIGHT EXPRESS'
   },
 
@@ -184,7 +184,7 @@ const trainsData = [
     punctuality: '99%',
     operator: 'Indian Railways (NR)',
     irctcUrl: 'https://www.irctc.co.in/nget/train-search',
-    directBookingUrl: 'https://www.confirmtkt.com/train/ndls-bsb/22436/kashi-vande-bharat-express',
+    directBookingUrl: 'https://www.confirmtkt.com/train-seat-availability/22436',
     badge: 'PREMIUM EXPRESS'
   },
   {
@@ -208,7 +208,7 @@ const trainsData = [
     punctuality: '93%',
     operator: 'Indian Railways (ECR)',
     irctcUrl: 'https://www.irctc.co.in/nget/train-search',
-    directBookingUrl: 'https://www.confirmtkt.com/train/ndls-bsb/12562/swatantra-senani-superfast',
+    directBookingUrl: 'https://www.confirmtkt.com/train-seat-availability/12562',
     badge: 'DAILY OVERNIGHT'
   },
 
@@ -233,7 +233,7 @@ const trainsData = [
     punctuality: '97%',
     operator: 'Indian Railways (NR)',
     irctcUrl: 'https://www.irctc.co.in/nget/train-search',
-    directBookingUrl: 'https://www.confirmtkt.com/train/ndls-hw/12055/dehradun-jan-shatabdi-express',
+    directBookingUrl: 'https://www.confirmtkt.com/train-seat-availability/12055',
     badge: 'HIMALAYA GATEWAY'
   },
 
@@ -259,7 +259,7 @@ const trainsData = [
     punctuality: '94%',
     operator: 'Indian Railways (WR)',
     irctcUrl: 'https://www.irctc.co.in/nget/train-search',
-    directBookingUrl: 'https://www.confirmtkt.com/train/adi-vrl/22957/somnath-superfast-express',
+    directBookingUrl: 'https://www.confirmtkt.com/train-seat-availability/22957',
     badge: 'DIRECT JYOTIRLINGA'
   },
 
@@ -284,7 +284,7 @@ const trainsData = [
     punctuality: '98%',
     operator: 'Indian Railways (CR)',
     irctcUrl: 'https://www.irctc.co.in/nget/train-search',
-    directBookingUrl: 'https://www.confirmtkt.com/train/csmt-snsi/22223/shirdi-vande-bharat-express',
+    directBookingUrl: 'https://www.confirmtkt.com/train-seat-availability/22223',
     badge: 'VIP PILGRIMAGE'
   },
 
@@ -309,7 +309,7 @@ const trainsData = [
     punctuality: '99%',
     operator: 'Indian Railways (SER)',
     irctcUrl: 'https://www.irctc.co.in/nget/train-search',
-    directBookingUrl: 'https://www.confirmtkt.com/train/hwh-puri/22895/howrah-puri-vande-bharat',
+    directBookingUrl: 'https://www.confirmtkt.com/train-seat-availability/22895',
     badge: 'CHAR DHAM ROUTE'
   }
 ];
@@ -1690,7 +1690,7 @@ export default function DevoteeTravelsView({ user, userBookings = [], targetBook
                     <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
                       {/* Secondary: Check on ConfirmTkt */}
                       <button
-                        onClick={() => handleRedirectToBooking(train, 'train', train.directBookingUrl)}
+                        onClick={() => handleRedirectToBooking(train, 'train', train.directBookingUrl || `https://www.confirmtkt.com/train-seat-availability/${train.trainNo}`)}
                         className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300 font-bold text-xs transition-all flex items-center justify-center gap-1.5 bg-slate-50 dark:bg-slate-950"
                       >
                         <Eye className="h-3.5 w-3.5" /> Check on ConfirmTkt <ExternalLink className="h-3 w-3 text-slate-400" />
